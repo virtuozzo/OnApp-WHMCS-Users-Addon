@@ -90,11 +90,14 @@
 				<th>{$LANG.FirstName}</th>
 				<th>{$LANG.LastName}</th>
 				<th>{$LANG.Email}</th>
-				{*<th>{$LANG.Server}</th>*}
 				<th>{$LANG.Actions}</th>
 			</tr>
 		{foreach from=$whmcs_users item=user}
-			{if $user.client_id and $user.server_id eq $smarty.get.server_id}
+            {if $user.not_exist}
+                {assign var='bg' value=' style="background-color: #f4cbcb;"'}
+            {elseif $user.deleted}
+				{assign var='bg' value=' style="background-color: #f7f7bb;"'}
+			{elseif $user.mapped}
 				{assign var='bg' value=' style="background-color: #ebfee2;"'}
 			{else}
 				{assign var='bg' value=''}
@@ -107,9 +110,8 @@
 				<td{$bg}>{$user.onapp_user_firstname}</td>
 				<td{$bg}>{$user.onapp_user_lastname}</td>
 				<td{$bg}>{$user.onapp_user_email}</td>
-				{*<td{$bg}>{$onapp_servers[$user.server_id].name}</td>*}
 				<td{$bg}>
-					{if $bg}
+					{if $user.mapped}
 						<a class="unmap" href="{$smarty.server.REQUEST_URI}&whmcs_user_id={$user.client_id}&onapp_user_id={$user.onapp_user_id}&server_id={$user.server_id}&unmap">{$LANG.Unmap}</a>
 					{else}
 						<a href="{$smarty.server.REQUEST_URI}&whmcs_user_id={$user.id}&server_id={$server_id}&map">{$LANG.Map}</a>

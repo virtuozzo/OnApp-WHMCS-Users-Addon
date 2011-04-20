@@ -1,7 +1,8 @@
 <?php
 
-error_reporting( E_ERROR );
-ini_set( 'display_errors', 'On' );
+//error_reporting( E_ERROR );
+//error_reporting( E_ALL );
+//ini_set( 'display_errors', 'On' );
 
 //var_dump( $_REQUEST );
 
@@ -38,7 +39,6 @@ function onapp_users_output( $vars ) {
     else {
         $data = $module->getUsersFromWHMCS( );
         $smarty->assign( 'whmcs_users', $data[ 'data' ] );
-//        var_dump( $data[ 'data' ] );
 
         if( isset( $_GET[ 'map' ] ) ) {
             $data = $module->getUsersFromOnApp( );

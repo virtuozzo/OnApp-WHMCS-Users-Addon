@@ -53,7 +53,7 @@ class OnApp_Users_Addon {
          * test staff
          * delete when finish and uncomment block below
          */
-        if( file_exists( $file = __DIR__ . '/' . $_GET[ 'server_id' ] ) ) {
+        if( file_exists( $file = __DIR__ . '/' . $_GET[ 'server_id' ] . '.srv' ) ) {
             var_dump( 'CACHE' );
             $required_path = __DIR__ . '/../wrapper/';
             require_once $required_path . 'User.php';
@@ -67,13 +67,13 @@ class OnApp_Users_Addon {
             file_put_contents( $file, serialize( $users ) );
         }
 
+        // todo uncomment block below & remove block above
         /* uncomment when finish testing
         $pass = decrypt( $server[ 'password' ] );
         $class = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $pass );
         $users = $class->getList( );
         */
 
-        //        $sql = 'SELECT `client_id`, `onapp_user_id` FROM `tblonappclients` WHERE `server_id` = ' . $_GET[ 'server_id' ];
         $sql = 'SELECT `onapp_user_id` FROM `tblonappclients` WHERE `server_id` = ' . $_GET[ 'server_id' ];
         $res = full_query( $sql );
 
@@ -166,18 +166,17 @@ class OnApp_Users_Addon {
 
     public function getUsersFromWHMCS( ) {
         $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-               . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
-               . ' OR onapp.`client_id` = 0  LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
-
-        $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
                . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
                . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
                . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
 
         $res = full_query( $sql );
 
-        echo $sql;
         while( $row = mysql_fetch_assoc( $res ) ) {
+            if( !is_null( $row[ 'server_id' ] ) ) {
+                $this->checkUser( $row );
+                $row[ 'mapped' ] = true;
+            }
             $results[ 'data' ][ $row[ 'id' ] ] = $row;
         }
 
@@ -200,48 +199,14 @@ class OnApp_Users_Addon {
         return $results;
     }
 
-    public function flushCache( ) {
-        if( empty( $this->servers ) ) {
-            $this->getServers( );
-        }
-
-        $sql = 'TRUNCATE TABLE `mod_onapp_users`';
-        mysql_query( $sql );
-        $sql = 'INSERT INTO `mod_onapp_users` ( `onapp_user_id`, `onapp_user_firstname`,
-				`onapp_user_lastname`, `onapp_user_email`, `onapp_user_server_id` ) VALUES ';
-
-        foreach( $this->servers as $server ) {
-            $pass = decrypt( $server[ 'password' ] );
-            $class = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $pass );
-            $users = $class->getList( );
-
-            foreach( $users as $user ) {
-                $sql .= '( ' . $user->_id . ', "' . $user->_first_name . '", "' . $user->_last_name . '", "'
-                        . $user->_email . '", ' . $server[ 'id' ] . ' ),';
-            }
-        }
-        $sql = substr( $sql, 0, -1 );
-        mysql_query( $sql );
-
-        $sql = 'SELECT * FROM `tblonappusers`';
-        $res = mysql_query( $sql );
-
-        while( $row = mysql_fetch_assoc( $res ) ) {
-            $sql = 'UPDATE `mod_onapp_users` SET `whmcs_user_id` = ' . $row[ 'client_id' ] . ' WHERE '
-                   . '`onapp_user_server_id` = ' . $row[ 'server_id' ] . ' AND ' . '`onapp_user_id` = '
-                   . $row[ 'onapp_user_id' ];
-            mysql_query( $sql );
-        }
-    }
-
     public function cleanParams( ) {
         $params = array(
             '&page=' . $_GET[ 'page' ],
             '&onapp_user_id=' . @$_GET[ 'onapp_user_id' ],
             //'&whmcs_user_id=' . $_GET[ 'whmcs_user_id' ],
-//            '&server_id=' . $_GET[ 'server_id' ],
+            //'&server_id=' . $_GET[ 'server_id' ],
             '&flushCache',
-//			'&map',
+            //'&map',
             '&unmap',
             '&domap'
         );
@@ -250,24 +215,6 @@ class OnApp_Users_Addon {
                 $_SERVER[ 'REQUEST_URI' ] = str_replace( $param, '', $_SERVER[ 'REQUEST_URI' ] );
             }
         }
-    }
-
-    private function getOnAppObject( $class, $server_ip, $username = null, $apikey = null ) {
-        if( !class_exists( 'ONAPP' ) ) {
-            $required_path = dirname( __FILE__ ) . '/../wrapper/';
-            require_once $required_path . 'ONAPP.php';
-        }
-
-        var_dump( "$class, $server_ip, $username, $apikey" );
-
-        $required_file = str_replace( 'ONAPP_', '', $class ) . '.php';
-        require_once $required_path . $required_file;
-
-        $obj = new $class;
-        $obj->auth( $server_ip, $username, $apikey );
-        $obj->_loger->setDebug( true );
-
-        return $obj;
     }
 
     public function map( ) {
@@ -316,7 +263,7 @@ class OnApp_Users_Addon {
             mysql_query( $sql );
         }
 
-        header( 'Location: /admin/addonmodules.php?module=onapp_users' );
+        header( 'Location: /admin/addonmodules.php?module=onapp_users&server_id=' . $_GET[ 'server_id' ] );
     }
 
     public function unmap( ) {
@@ -363,5 +310,38 @@ class OnApp_Users_Addon {
         $results[ 'total' ] = mysql_result( $res, 0 );
 
         return $results;
+    }
+
+    private function getOnAppObject( $class, $server_ip, $username = null, $apikey = null ) {
+        $required_path = dirname( __FILE__ ) . '/../wrapper/';
+        if( !class_exists( 'ONAPP' ) ) {
+            require_once $required_path . 'ONAPP.php';
+        }
+
+        var_dump( "$class, $server_ip, $username, $apikey" );
+
+        $required_file = str_replace( 'ONAPP_', '', $class ) . '.php';
+        require_once $required_path . $required_file;
+
+        $obj = new $class;
+        $obj->auth( $server_ip, $username, $apikey );
+        $obj->_loger->setDebug( true );
+
+        return $obj;
+    }
+
+    private function checkUser( &$row ) {
+        $server = $this->servers[ $row[ 'server_id' ] ];
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], decrypt( $server[ 'password' ] ) );
+        $user->_loger->setDebug( true );
+        $user->load( $row[ 'onapp_user_id' ] );
+        $user = $user->_obj;
+
+        if( is_null( $user ) ) {
+            $row[ 'not_exist' ] = true;
+        }
+        elseif( $user->_status == 'deleted' ) {
+            $row[ 'deleted' ] = true;
+        }
     }
 }
