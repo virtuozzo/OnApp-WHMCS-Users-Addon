@@ -85,17 +85,17 @@ class OnApp_Users_Addon {
             foreach( $users as $user ) {
                 $flag = false;
                 if( !empty( $_POST[ 'firstname' ] ) ) {
-                    if( strpos( $user->_first_name, $_POST[ 'firstname' ] ) !== false ) {
+                    if( strpos( strtolower( $user->_first_name ), strtolower( $_POST[ 'firstname' ] ) ) !== false ) {
                         $flag = true;
                     }
                 }
                 if( !empty( $_POST[ 'lastname' ] ) ) {
-                    if( strpos( $user->_last_name, $_POST[ 'lastname' ] ) !== false ) {
+                    if( strpos( strtolower( $user->_last_name ), strtolower( $_POST[ 'lastname' ] ) ) !== false ) {
                         $flag = true;
                     }
                 }
                 if( !empty( $_POST[ 'email' ] ) ) {
-                    if( strpos( $user->_email, $_POST[ 'email' ] ) !== false ) {
+                    if( strpos( strtolower( $user->_email ), strtolower( $_POST[ 'email' ] ) ) !== false ) {
                         $flag = true;
                     }
                 }
@@ -108,31 +108,8 @@ class OnApp_Users_Addon {
                 }
             }
 
-            $limit = $this->limit;
-            for( $i = 0; $i < $this->limit; $i++ ) {
-                if( !isset( $users[ $this->offset + $i ] ) ) {
-                    break;
-                }
-                elseif( in_array( $users[ $this->offset + $i ]->_id, $already_mapped ) ) {
-                    ++$limit;
-                    continue;
-                }
-
-                $results[ 'data' ][ ] = $tmp[ $this->offset + $i ];
-            }
-
-            $results[ 'total' ] = count( $tmp ) - count( $already_mapped );
-            $this->limit;
-            $results[ 'pages' ] = ceil( $results[ 'total' ] / $this->limit );
-            $results[ 'current' ] = $_GET[ 'page' ];
-
-            if( $_GET[ 'page' ] > 1 ) {
-                $results[ 'prev' ] = $_GET[ 'page' ] - 1;
-            }
-
-            if( ( $this->offset + $this->limit ) < $results[ 'total' ] ) {
-                $results[ 'next' ] = $_GET[ 'page' ] + 1;
-            }
+            $results[ 'data' ] = $tmp;
+            $results[ 'total' ] = count( $results[ 'data' ] );
         }
         else {
             $limit = $this->limit;
@@ -249,7 +226,7 @@ class OnApp_Users_Addon {
             'server_id' => $_GET[ 'server_id' ],
             'client_id' => $_GET[ 'whmcs_user_id' ],
             'onapp_user_id' => $_GET[ 'onapp_user_id' ],
-            'password' => $whmcsuser[ 'password' ],
+            'password' => encrypt( $whmcsuser[ 'password' ] ),
             'email' => $whmcsuser[ 'email' ]
         ) );
 
