@@ -1,11 +1,13 @@
-<script type="text/javascript" src="/modules/admin/onapp_users/js/handlers.js"></script>
-<link href="/modules/admin/onapp_users/templates/styles.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="../modules/admin/onapp_users/js/handlers.js"></script>
+<link href="../modules/admin/onapp_users/templates/styles.css" rel="stylesheet" type="text/css" />
 
 <!--<div style="font-size: 18px;" class="contentbox"></div>
 <br/>-->
 
 {if $map}
 	{include file='map.tpl'}
+{elseif $info}
+	{include file='info.tpl'}
 {else}
 	{include file='main.tpl'}
 {/if}
