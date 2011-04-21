@@ -1,10 +1,5 @@
 <?php
-
-//error_reporting( E_ERROR );
 //error_reporting( E_ALL );
-//ini_set( 'display_errors', 'On' );
-
-//var_dump( $_REQUEST );
 
 include_once 'classes/Addon.php';
 
@@ -25,9 +20,12 @@ function onapp_users_output( $vars ) {
     $smarty->assign( 'LANG', $vars[ '_lang' ] );
 
     $smarty->assign( 'onapp_servers', $servers = $module->getServers( ) );
-
-    if( !isset( $_GET[ 'server_id' ] ) ) {
-        $server = array_shift( $servers );
+    if( isset( $_GET[ 'server_id' ] ) ) {
+        $smarty->assign( 'server_id', $_GET[ 'server_id' ] );
+    }
+    else {
+        $server = current( $servers );
+        $smarty->assign( 'server_id', $server[ 'id' ] );
         $_GET[ 'server_id' ] = $server[ 'id' ];
     }
 
@@ -37,12 +35,21 @@ function onapp_users_output( $vars ) {
         $smarty->assign( 'whmcs_users', $data[ 'data' ] );
     }
     else {
-        $data = $module->getUsersFromWHMCS( );
-        $smarty->assign( 'whmcs_users', $data[ 'data' ] );
-
         if( isset( $_GET[ 'map' ] ) ) {
+            $data = $module->getUsersFromWHMCS( $_GET[ 'whmcs_user_id' ] );
+            $smarty->assign( 'whmcs_user', $data[ 'data' ] );
+
             $data = $module->getUsersFromOnApp( );
             $smarty->assign( 'onapp_users', $data[ 'data' ] );
+        }
+        elseif( isset( $_GET[ 'info' ] ) ) {
+            $data = $module->getUserData( );
+            $smarty->assign( 'whmcs_user', $data[ 'whmcs_user' ] );
+            $smarty->assign( 'onapp_user', $data[ 'onapp_user' ] );
+        }
+        else {
+            $data = $module->getUsersFromWHMCS( );
+            $smarty->assign( 'whmcs_users', $data[ 'data' ] );
         }
     }
 
@@ -57,13 +64,7 @@ function onapp_users_output( $vars ) {
     }
 
     $smarty->assign( 'total', $data[ 'total' ] );
-    if( isset( $_GET[ 'server_id' ] ) ) {
-        $smarty->assign( 'server_id', $_GET[ 'server_id' ] );
-    }
-    else {
-        $server = current( $module->getServers( ) );
-        $smarty->assign( 'server_id', $server[ 'id' ] );
-    }
+    $smarty->assign( 'server_id', $_GET[ 'server_id' ] );
 
     $module->cleanParams( );
 

@@ -16,6 +16,9 @@ class OnApp_Users_Addon {
         if( isset( $_GET[ 'map' ] ) ) {
             $smarty->assign( 'map', true );
         }
+        elseif( isset( $_GET[ 'info' ] ) ) {
+            $smarty->assign( 'info', true );
+        }
 
         if( isset( $_GET[ 'flushCache' ] ) ) {
             $this->flushCache( );
@@ -47,6 +50,8 @@ class OnApp_Users_Addon {
     }
 
     public function getUsersFromOnApp( ) {
+        var_dump( __METHOD__ );
+
         $server = $this->servers[ $_GET[ 'server_id' ] ];
 
         /**
@@ -141,7 +146,16 @@ class OnApp_Users_Addon {
         return $results;
     }
 
-    public function getUsersFromWHMCS( ) {
+    public function getUsersFromWHMCS( $id = false ) {
+        var_dump( __METHOD__ );
+
+        if( $id ) {
+            $sql = 'SELECT whmcs.* FROM `tblclients` AS whmcs WHERE whmcs.`id` = ' . $id . ' LIMIT 1';
+
+            $result[ 'data' ] = mysql_fetch_assoc( full_query( $sql ) );
+            return $result;
+        }
+
         $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
                . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
                . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
@@ -176,16 +190,72 @@ class OnApp_Users_Addon {
         return $results;
     }
 
+    public function getUserData( ) {
+        var_dump( __METHOD__ );
+
+        $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
+               . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
+               . ' WHERE onapp.`server_id` = ' . $_GET[ 'server_id' ] . ' AND whmcs.`id` = ' . $_GET[ 'whmcs_user_id' ]
+               . ' LIMIT 1';
+
+        $result[ 'whmcs_user' ] = mysql_fetch_assoc( full_query( $sql ) );
+
+        $server = $this->servers[ $result[ 'whmcs_user' ][ 'server_id' ] ];
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], decrypt( $server[ 'password' ] ) );
+        $user->_loger->setDebug( true );
+        $user->load( $result[ 'whmcs_user' ][ 'onapp_user_id' ] );
+        $result[ 'onapp_user' ] = $user->_obj;
+
+        return $result;
+    }
+
+    public function filterMain( ) {
+        $where = '';
+        $rules = array( );
+        if( !empty( $_POST[ 'firstname' ] ) ) {
+            $rules[ ] = '`firstname` LIKE "%' . $_POST[ 'firstname' ] . '%"';
+        }
+        if( !empty( $_POST[ 'lastname' ] ) ) {
+            $rules[ ] = '`lastname` LIKE "%' . $_POST[ 'lastname' ] . '%"';
+        }
+        if( !empty( $_POST[ 'email' ] ) ) {
+            $rules[ ] = 'whmcs.`email` LIKE "%' . $_POST[ 'email' ] . '%"';
+        }
+
+        if( count( $rules ) ) {
+            $where = ' WHERE ' . implode( ' AND ', $rules );
+        }
+
+        $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
+               . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
+               . ' OR onapp.`client_id` = 0 ' . $where;
+
+        $res = mysql_query( $sql );
+
+        $results = array( );
+        while( $row = mysql_fetch_assoc( $res ) ) {
+            $results[ 'data' ][ ] = $row;
+        }
+
+        $sql = 'SELECT count(*) FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
+               . ' OR onapp.`client_id` = 0 ' . $where;
+        $res = mysql_query( $sql );
+        $results[ 'total' ] = mysql_result( $res, 0 );
+
+        return $results;
+    }
+
     public function cleanParams( ) {
         $params = array(
             '&page=' . $_GET[ 'page' ],
             '&onapp_user_id=' . @$_GET[ 'onapp_user_id' ],
-            //'&whmcs_user_id=' . $_GET[ 'whmcs_user_id' ],
-            //'&server_id=' . $_GET[ 'server_id' ],
+            '&whmcs_user_id=' . $_GET[ 'whmcs_user_id' ],
+            '&server_id=' . $_GET[ 'server_id' ],
             '&flushCache',
-            //'&map',
+            '&map',
             '&unmap',
-            '&domap'
+            '&domap',
+            '&info'
         );
         foreach( $params as $param ) {
             if( strpos( $_SERVER[ 'REQUEST_URI' ], $param ) ) {
@@ -194,7 +264,7 @@ class OnApp_Users_Addon {
         }
     }
 
-    public function map( ) {
+    private function map( ) {
         $sql = 'SELECT `id`, `firstname`, `lastname`, `email`, `password` FROM `tblclients`'
                . ' WHERE `id` = ' . $_GET[ 'whmcs_user_id' ];
         $res = full_query( $sql );
@@ -239,54 +309,14 @@ class OnApp_Users_Addon {
 
             mysql_query( $sql );
         }
-
-        header( 'Location: /admin/addonmodules.php?module=onapp_users&server_id=' . $_GET[ 'server_id' ] );
     }
 
-    public function unmap( ) {
-        $sql = 'UPDATE `mod_onapp_users` SET `whmcs_user_id` = 0 WHERE ' . ' `onapp_user_id` = '
-               . $_GET[ 'onapp_user_id' ] . ' AND `onapp_user_server_id` = ' . $_GET[ 'server_id' ];
-        mysql_query( $sql );
+    private function unmap( ) {
+        var_dump( __METHOD__ );
 
         $sql = 'DELETE FROM `tblonappclients` WHERE `client_id` = ' . $_GET[ 'whmcs_user_id' ] . ' AND `onapp_user_id`'
                . ' = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ];
         mysql_query( $sql );
-    }
-
-    public function filterMain( ) {
-        $where = '';
-        $rules = array( );
-        if( !empty( $_POST[ 'firstname' ] ) ) {
-            $rules[ ] = '`firstname` LIKE "%' . $_POST[ 'firstname' ] . '%"';
-        }
-        if( !empty( $_POST[ 'lastname' ] ) ) {
-            $rules[ ] = '`lastname` LIKE "%' . $_POST[ 'lastname' ] . '%"';
-        }
-        if( !empty( $_POST[ 'email' ] ) ) {
-            $rules[ ] = 'whmcs.`email` LIKE "%' . $_POST[ 'email' ] . '%"';
-        }
-
-        if( count( $rules ) ) {
-            $where = ' WHERE ' . implode( ' AND ', $rules );
-        }
-
-        $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-               . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
-               . ' OR onapp.`client_id` = 0 ' . $where;
-
-        $res = mysql_query( $sql );
-
-        $results = array( );
-        while( $row = mysql_fetch_assoc( $res ) ) {
-            $results[ 'data' ][ ] = $row;
-        }
-
-        $sql = 'SELECT count(*) FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
-               . ' OR onapp.`client_id` = 0 ' . $where;
-        $res = mysql_query( $sql );
-        $results[ 'total' ] = mysql_result( $res, 0 );
-
-        return $results;
     }
 
     private function getOnAppObject( $class, $server_ip, $username = null, $apikey = null ) {
@@ -310,7 +340,6 @@ class OnApp_Users_Addon {
     private function checkUser( &$row ) {
         $server = $this->servers[ $row[ 'server_id' ] ];
         $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], decrypt( $server[ 'password' ] ) );
-        $user->_loger->setDebug( true );
         $user->load( $row[ 'onapp_user_id' ] );
         $user = $user->_obj;
 

@@ -12,27 +12,6 @@
 		<form method="post" action="">
 			<input type="hidden" value="main" name="filter">
 			<table cellspacing="2" cellpadding="3" border="0" width="100%" class="form">
-				{*<tr>
-					<td class="fieldlabel">{$LANG.Search}</td>
-					<td class="fieldarea">
-						<select name="client" id="clients">
-							<option value="WHMCS">WHMCS</option>
-							<option value="OnApp">OnApp</option>
-						</select>
-					</td>
-				</tr>
-				<tr id="servers">
-					<td class="fieldlabel">{$LANG.Server}</td>
-					<td class="fieldarea">
-						<select name="server" class="mapserver">
-							<option value="">Any</option>
-							{foreach from=$onapp_servers key=id item=server}
-								<option value="{$id}">{$server.name} | {$server.ipaddress}</option>
-							{/foreach}
-						</select>
-					</td>
-				</tr>
-				*}
 				<tr>
 					<td width="15%" class="fieldlabel">{$LANG.FirstName}</td>
 					<td class="fieldarea">
@@ -79,17 +58,11 @@
 	<div class="tablebg">
 		<table width="100%" cellspacing="1" cellpadding="3" border="0" class="datatable">
 			<tr>
-				<th colspan="4">WHMCS</th>
-				<th colspan="5">OnApp</th>
-			</tr>
-			<tr>
-				<th>ID</th>
+				<th>{$LANG.ID}</th>
 				<th>{$LANG.FirstName}</th>
 				<th>{$LANG.LastName}</th>
 				<th>{$LANG.Email}</th>
-				<th>{$LANG.FirstName}</th>
-				<th>{$LANG.LastName}</th>
-				<th>{$LANG.Email}</th>
+				<th>{$LANG.Status}</th>
 				<th>{$LANG.Actions}</th>
 			</tr>
 		{foreach from=$whmcs_users item=user}
@@ -107,12 +80,10 @@
 				<td{$bg}>{$user.firstname}</td>
 				<td{$bg}>{$user.lastname}</td>
 				<td{$bg}>{$user.email}</td>
-				<td{$bg}>{$user.onapp_user_firstname}</td>
-				<td{$bg}>{$user.onapp_user_lastname}</td>
-				<td{$bg}>{$user.onapp_user_email}</td>
+				<td{$bg}>{$user.status}</td>
 				<td{$bg}>
 					{if $user.mapped}
-						<a class="unmap" href="{$smarty.server.REQUEST_URI}&whmcs_user_id={$user.client_id}&onapp_user_id={$user.onapp_user_id}&server_id={$user.server_id}&unmap">{$LANG.Unmap}</a>
+						<a href="{$smarty.server.REQUEST_URI}&whmcs_user_id={$user.client_id}&onapp_user_id={$user.onapp_user_id}&server_id={$server_id}&info">{$LANG.View}</a>
 					{else}
 						<a href="{$smarty.server.REQUEST_URI}&whmcs_user_id={$user.id}&server_id={$server_id}&map">{$LANG.Map}</a>
 					{/if}
