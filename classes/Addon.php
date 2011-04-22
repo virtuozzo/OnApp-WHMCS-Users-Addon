@@ -19,15 +19,14 @@ class OnApp_Users_Addon {
         elseif( isset( $_GET[ 'info' ] ) ) {
             $smarty->assign( 'info', true );
         }
-
-        if( isset( $_GET[ 'flushCache' ] ) ) {
-            $this->flushCache( );
-        }
         elseif( isset( $_GET[ 'domap' ] ) ) {
             $this->map( );
         }
         elseif( isset( $_GET[ 'unmap' ] ) ) {
             $this->unmap( );
+        }
+        elseif( isset( $_GET[ 'activate' ] ) ) {
+            $this->activate( );
         }
 
         if( !isset( $_GET[ 'page' ] ) ) {
@@ -204,7 +203,7 @@ class OnApp_Users_Addon {
         $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], decrypt( $server[ 'password' ] ) );
         $user->_loger->setDebug( true );
         $user->load( $result[ 'whmcs_user' ][ 'onapp_user_id' ] );
-        $result[ 'onapp_user' ] = $user->_obj;
+        $result[ 'onapp_user' ] = (array)$user->_obj;
 
         return $result;
     }
@@ -255,6 +254,7 @@ class OnApp_Users_Addon {
             '&map',
             '&unmap',
             '&domap',
+            '&activate',
             '&info'
         );
         foreach( $params as $param ) {
@@ -317,6 +317,43 @@ class OnApp_Users_Addon {
         $sql = 'DELETE FROM `tblonappclients` WHERE `client_id` = ' . $_GET[ 'whmcs_user_id' ] . ' AND `onapp_user_id`'
                . ' = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ];
         mysql_query( $sql );
+    }
+
+    private function activate( ) {
+        var_dump( __METHOD__ );
+
+        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
+               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
+        $res = full_query( $sql );
+        $server = mysql_fetch_assoc( $res );
+        $pass = decrypt( $server[ 'password' ] );
+
+        $headers = array( 'Accept: application/json', 'Content-type: application/json' );
+
+        include_once 'CURL.php';
+        $curl = new CURL( );
+
+        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $pass );
+        $curl->addOption( CURLOPT_HTTPHEADER, $headers );
+        $curl->addOption( CURLOPT_HEADER, true );
+
+        $url = 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '/activate_user.json';
+        $content = $curl->get( $url );
+
+        $this->smarty->assign( 'msg', true );
+        if( $curl->getHeadersInfo( 'http_code' ) == 200 ) {
+            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'ActivatedSuccessfully' ] );
+            $this->smarty->assign( 'msg_ok', true );
+        }
+        else {
+            $content = json_decode( $content );
+            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'ActivatedError' ] . $content->error );
+            $this->smarty->assign( 'msg_ok', false );
+        }
+
+        $this->cleanParams( );
+        $_GET[ 'info' ] = true;
+        $this->smarty->assign( 'info', true );
     }
 
     private function getOnAppObject( $class, $server_ip, $username = null, $apikey = null ) {
