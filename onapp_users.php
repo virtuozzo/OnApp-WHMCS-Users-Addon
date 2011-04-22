@@ -67,7 +67,6 @@ function onapp_users_output( $vars ) {
     $smarty->assign( 'server_id', $_GET[ 'server_id' ] );
 
     $module->cleanParams( );
-
     echo $smarty->fetch( dirname( __FILE__ ) . '/templates/onapp_users.tpl' );
 }
 
@@ -114,5 +113,6 @@ function load_lang( ) {
 
     include_once $file;
 
+    echo '<script type="text/javascript">var LANG = ' . json_encode( $_ADDONLANG_JS ) . ';</script>';
     $_LANG = array_merge( $_LANG, $_ADDONLANG );
 }
