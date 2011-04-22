@@ -2,6 +2,6 @@ a {
 	outline: 0;
 }
 
-.connected {
-	display: none;
+.actions a {
+    text-decoration: none;
 }

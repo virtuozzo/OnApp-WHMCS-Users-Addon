@@ -45,52 +45,67 @@
         </tr>
         <tr>
             <td width="25%" class="fieldlabel">{$LANG.FirstName}</td>
-            <td width="25%" class="fieldarea">{$onapp_user->_first_name}</td>
+            <td width="25%" class="fieldarea">{$onapp_user._first_name}</td>
             <td width="25%" class="fieldlabel">{$LANG.Email}</td>
-            <td width="25%" class="fieldarea">{$onapp_user->_email}</td>
+            <td width="25%" class="fieldarea">{$onapp_user._email}</td>
         </tr>
         <tr>
             <td class="fieldlabel">{$LANG.LastName}</td>
-            <td class="fieldarea">{$onapp_user->_last_name}</td>
+            <td class="fieldarea">{$onapp_user._last_name}</td>
             <td class="fieldlabel">{$LANG.Status}</td>
-            <td class="fieldarea">{$onapp_user->_status}</td>
+            <td class="fieldarea">{$onapp_user._status}</td>
         </tr>
     </table>
-</div>
+    <br/>
 
-<br/>
-<table width="100%" cellspacing="1" cellpadding="3" border="0" class="datatable">
-	<tr>
-		{*<th>{$LANG.ID}</th>*}
-		<th>{$LANG.TotalAmount}</th>
-		<th>{$LANG.PaymentAmount}</th>
-		<th>{$LANG.OutstandingAmount}</th>
-		<th>{$LANG.MemoryAvailable}</th>
-		<th>{$LANG.UsedMemory}</th>
-		<th>{$LANG.DiskSpaceAvailable}</th>
-		<th>{$LANG.UsedDiskSize}</th>
-		<th>{$LANG.UsedCPUs}</th>
-		<th>{$LANG.UsedCPUShares}</th>
-	</tr>
-	<tr>
-		{*<td>{$onapp_user->_id}</td>*}
-		<td>{$onapp_user->_total_amount}</td>
-		<td>{$onapp_user->_payment_amount}</td>
-        <td>{$onapp_user->_outstanding_amount}</td>
-        <td>{$onapp_user->_memory_available}</td>
-        <td>{$onapp_user->_used_memory}</td>
-        <td>{$onapp_user->_disk_space_available}</td>
-        <td>{$onapp_user->_used_disk_size}</td>
-        <td>{$onapp_user->_used_cpus}</td>
-        <td>{$onapp_user->_used_cpu_shares}</td>
-	</tr>
-    <tr>
-        <td colspan="9">&nbsp;</td>
-    </tr>
-    <tr>
-        <td colspan="9">
-            <b>{$LANG.Actions}:</b>
-            <a class="unmap" href="{$smarty.server.REQUEST_URI}&onapp_user_id={$onapp_user->_id}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&unmap">{$LANG.Unmap}</a>
-        </td>
-    </tr>
-</table>
+    <table cellspacing="2" cellpadding="3" border="0" width="100%" class="form">
+        <tr>
+            <td colspan="4" class="fieldlabel"><b>{$LANG.Resources} {$LANG.Information}</b></td>
+        </tr>
+        <tr>
+            <td width="25%" class="fieldlabel">{$LANG.MemoryAvailable}</td>
+            <td width="25%" class="fieldarea">{$onapp_user._memory_available}</td>
+            <td width="25%" class="fieldlabel">{$LANG.UsedMemory}</td>
+            <td width="25%" class="fieldarea">{$onapp_user._used_memory}</td>
+        </tr>
+        <tr>
+            <td class="fieldlabel">{$LANG.DiskSpaceAvailable}</td>
+            <td class="fieldarea">{$onapp_user._disk_space_available}</td>
+            <td class="fieldlabel">{$LANG.UsedDiskSize}</td>
+            <td class="fieldarea">{$onapp_user._used_disk_size}</td>
+        </tr>
+        <tr>
+            <td class="fieldlabel">{$LANG.UsedCPUs}</td>
+            <td class="fieldarea">{$onapp_user._used_cpus}</td>
+            <td class="fieldlabel">{$LANG.UsedCPUShares}</td>
+            <td class="fieldarea">{$onapp_user._used_cpu_shares}</td>
+        </tr>
+    </table>
+    <br/>
+
+    <table cellspacing="2" cellpadding="3" border="0" width="100%" class="form">
+        <tr>
+            <td colspan="6" class="fieldlabel"><b>{$LANG.Billing} {$LANG.Information}</b></td>
+        </tr>
+        <tr>
+            <td width="16%" class="fieldlabel">{$LANG.TotalAmount}</td>
+            <td width="16%" class="fieldarea">{$onapp_user._total_amount}</td>
+            <td width="16%" class="fieldlabel">{$LANG.PaymentAmount}</td>
+            <td width="16%" class="fieldarea">{$onapp_user._payment_amount}</td>
+            <td width="16%" class="fieldlabel">{$LANG.OutstandingAmount}</td>
+            <td width="16%" class="fieldarea">{$onapp_user._outstanding_amount}</td>
+        </tr>
+    </table>
+
+    <p style="text-align: center;">
+        {if $onapp_user._status eq 'suspended'}
+            <a href="{$smarty.server.REQUEST_URI}&onapp_user_id={$onapp_user._id}&server_id={$server_id}&whmcs_user_id={$whmcs_user.id}&activate">
+                <button>{$LANG.Activate}</button>
+            </a>
+        {/if}
+
+        <a class="unmap" href="{$smarty.server.REQUEST_URI}&onapp_user_id={$onapp_user._id}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&unmap">
+            <button>{$LANG.Unmap}</button>
+        </a>
+    </p>
+</div>
