@@ -23,6 +23,9 @@ $_ADDONLANG[ 'ID' ] = 'ID';
 $_ADDONLANG[ 'Resources' ] = 'Resources';
 $_ADDONLANG[ 'Billing' ] = 'Billing';
 $_ADDONLANG[ 'Information' ] = 'Information';
+$_ADDONLANG[ 'Sync' ] = 'Synchronize';
+$_ADDONLANG[ 'Data' ] = 'data';
+$_ADDONLANG[ 'LoginPassword' ] = 'login/password';
 
 // stat
 $_ADDONLANG[ 'TotalAmount' ] = 'Total Amount';
@@ -35,16 +38,24 @@ $_ADDONLANG[ 'UsedDiskSize' ] = 'Used Disk Size';
 $_ADDONLANG[ 'UsedCPUs' ] = 'Used CPUs';
 $_ADDONLANG[ 'UsedCPUShares' ] = 'Used CPU Shares';
 $_ADDONLANG[ 'Activate' ] = 'Activate';
+$_ADDONLANG[ 'Suspend' ] = 'Suspend';
 $_ADDONLANG[ 'Unmap' ] = 'Unmap';
+$_ADDONLANG[ 'LoginToCP' ] = 'Login to CP';
 
 // messages
 $_ADDONLANG[ 'ActivatedSuccessfully' ] = 'User was activated successfully';
 $_ADDONLANG[ 'ActivatedError' ] = 'There was error during user activation: ';
+$_ADDONLANG[ 'MapedSuccessfully' ] = 'User was maped successfully';
+$_ADDONLANG[ 'MapedError' ] = 'There was error during user\'s maping: ';
+$_ADDONLANG[ 'UnmapedSuccessfully' ] = 'User was unmaped successfully';
+$_ADDONLANG[ 'UnmapedError' ] = 'There was error during user\'s unmaping: ';
+$_ADDONLANG[ 'DataSyncedSuccessfully' ] = 'Data was synced successfully';
+$_ADDONLANG[ 'DataSyncedError' ] = 'There was error during data synchronization: ';
+$_ADDONLANG[ 'SuspendSuccessfully' ] = 'User was suspended successfully';
+$_ADDONLANG[ 'SuspendError' ] = 'There was error during user suspending: ';
+$_ADDONLANG[ 'AuthSyncedSuccessfully' ] = 'Login and Password are now identical';
+$_ADDONLANG[ 'AuthSyncedError' ] = 'There was error during authentication synchronization: ';
 $_ADDONLANG[ 'ID' ] = 'ID';
-$_ADDONLANG[ 'ID' ] = 'ID';
-$_ADDONLANG[ 'ID' ] = 'ID';
-$_ADDONLANG[ 'ID' ] = 'ID';
-$_ADDONLANG[ 'ID' ] = 'ID';
-$_ADDONLANG[ 'ID' ] = 'ID';
+
 // JavaScript
 $_ADDONLANG_JS[ 'UnmapAlert' ] = 'Do you really want to unmap user?';
