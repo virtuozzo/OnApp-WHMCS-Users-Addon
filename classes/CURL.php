@@ -4,7 +4,7 @@
 // improve functionality
 class CURL {
     private $ch;
-    private $headers;
+    private $data;
     private $customOptions = array( );
 
     private $defaultOptions = array(
@@ -53,20 +53,20 @@ class CURL {
         return $this->send( 'HEAD', $url );
     }
 
-    public function getHeadersInfo( $param = false ) {
+    public function getRequestInfo( $param = false ) {
         if( $param ) {
-            return $this->getHeaderItem( 'info', $param );
+            return $this->getDataItem( 'info', $param );
         }
         else {
-            return $this->headers[ 'info' ];
+            return $this->data[ 'info' ];
         }
     }
 
     public function getHeadersData( $param = false ) {
         if( $param ) {
-            return $this->getHeaderItem( 'data', $param );
+            return $this->getDataItem( 'data', $param );
         }
-        return $this->headers[ 'data' ];
+        return $this->data[ 'data' ];
     }
 
     private function send( $method, $url ) {
@@ -94,8 +94,8 @@ class CURL {
         $response = curl_exec( $this->ch );
 
         if( $this->customOptions[ CURLOPT_HEADER ] ) {
-            $this->headers[ 'info' ] = curl_getinfo( $this->ch );
-            $this->headers[ 'info' ][ 'request_header' ] = trim( $this->headers[ 'info' ][ 'request_header' ] );
+            $this->data[ 'info' ] = curl_getinfo( $this->ch );
+            $this->data[ 'info' ][ 'request_header' ] = trim( $this->data[ 'info' ][ 'request_header' ] );
             $this->processHeaders( $response );
         }
 
@@ -107,20 +107,20 @@ class CURL {
     private function processHeaders( &$data ) {
         $tmp = explode( "\r\n\r\n", $data, 2 );
 
-        $this->headers[ 'info' ][ 'response_header' ] = $tmp[ 0 ];
-        $data = $tmp[ 1 ];
+        $this->data[ 'info' ][ 'response_header' ] = $tmp[ 0 ];
+        $this->data[ 'info' ][ 'response_body' ] = $data = trim( $tmp[ 1 ] );
 
-        $tmp = explode( "\r\n", $this->headers[ 'info' ][ 'response_header' ] );
-        $this->headers[ 'data' ][ 'Message' ] = $tmp[ 0 ];
+        $tmp = explode( "\r\n", $this->data[ 'info' ][ 'response_header' ] );
+        $this->data[ 'data' ][ 'Message' ] = $tmp[ 0 ];
         for( $i = 1, $size = count( $tmp ); $i < $size; ++$i ) {
             $string = explode( ': ', $tmp[ $i ], 2 );
-            $this->headers[ 'data' ][ $string[ 0 ] ] = $string[ 1 ];
+            $this->data[ 'data' ][ $string[ 0 ] ] = $string[ 1 ];
         }
     }
 
-    private function getHeaderItem( $what, $name ) {
-        if( isset( $this->headers[ $what ][ $name ] ) ) {
-            return $this->headers[ $what ][ $name ];
+    private function getDataItem( $what, $name ) {
+        if( isset( $this->data[ $what ][ $name ] ) ) {
+            return $this->data[ $what ][ $name ];
         }
         else {
             return null;
