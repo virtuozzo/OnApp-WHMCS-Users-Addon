@@ -2,6 +2,6 @@ a {
 	outline: 0;
 }
 
-.actions a {
+span.onapp_actions a {
     text-decoration: none;
 }
