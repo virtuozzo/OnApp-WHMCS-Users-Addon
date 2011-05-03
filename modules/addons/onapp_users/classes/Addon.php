@@ -259,11 +259,7 @@ class OnApp_Users_Addon {
         $res = full_query( $sql );
         $whmcsuser = mysql_fetch_assoc( $res );
 
-        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
-        $res = full_query( $sql );
-        $server = mysql_fetch_assoc( $res );
-        $pass = decrypt( $server[ 'password' ] );
+        $server = $this->getServerData( );
 
         $data[ 'password' ] = $whmcsuser[ 'password' ];
         $data[ 'password_confirmation' ] = $whmcsuser[ 'password' ];
@@ -273,7 +269,7 @@ class OnApp_Users_Addon {
 
         include_once 'CURL.php';
         $curl = new CURL( );
-        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $pass );
+        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
         $curl->addOption( CURLOPT_HTTPHEADER, $headers );
         $curl->addOption( CURLOPT_POSTFIELDS, $data );
         $curl->addOption( CURLOPT_HEADER, true );
@@ -312,7 +308,6 @@ class OnApp_Users_Addon {
         mysql_query( $sql );
 
         $error = mysql_error( );
-        $error = '';
         $this->smarty->assign( 'msg', true );
         if( empty( $error ) ) {
             $this->smarty->assign( 'msg_text', $this->lang[ 'UnmapedSuccessfully' ] );
@@ -329,17 +324,13 @@ class OnApp_Users_Addon {
     }
 
     private function activate( ) {
-        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
-        $res = full_query( $sql );
-        $server = mysql_fetch_assoc( $res );
-        $pass = decrypt( $server[ 'password' ] );
+        $server = $this->getServerData( );
 
         $headers = array( 'Accept: application/json', 'Content-type: application/json' );
 
         include_once 'CURL.php';
         $curl = new CURL( );
-        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $pass );
+        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
         $curl->addOption( CURLOPT_HTTPHEADER, $headers );
         $curl->addOption( CURLOPT_HEADER, true );
 
@@ -369,17 +360,13 @@ class OnApp_Users_Addon {
     }
 
     private function suspend( ) {
-        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
-        $res = full_query( $sql );
-        $server = mysql_fetch_assoc( $res );
-        $pass = decrypt( $server[ 'password' ] );
+        $server = $this->getServerData( );
 
         $headers = array( 'Accept: application/json', 'Content-type: application/json' );
 
         include_once 'CURL.php';
         $curl = new CURL( );
-        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $pass );
+        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
         $curl->addOption( CURLOPT_HTTPHEADER, $headers );
         $curl->addOption( CURLOPT_HEADER, true );
 
@@ -414,11 +401,7 @@ class OnApp_Users_Addon {
         $res = full_query( $sql );
         $whmcsuser = mysql_fetch_assoc( $res );
 
-        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
-        $res = full_query( $sql );
-        $server = mysql_fetch_assoc( $res );
-        $pass = decrypt( $server[ 'password' ] );
+        $server = $this->getServerData( );
 
         $data[ 'first_name' ] = $whmcsuser[ 'firstname' ];
         $data[ 'last_name' ] = $whmcsuser[ 'lastname' ];
@@ -429,7 +412,7 @@ class OnApp_Users_Addon {
 
         include_once 'CURL.php';
         $curl = new CURL( );
-        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $pass );
+        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
         $curl->addOption( CURLOPT_HTTPHEADER, $headers );
         $curl->addOption( CURLOPT_POSTFIELDS, $data );
         $curl->addOption( CURLOPT_HEADER, true );
@@ -469,10 +452,7 @@ class OnApp_Users_Addon {
         $res = full_query( $sql );
         $onapp_user = mysql_fetch_assoc( $res );
 
-        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
-        $res = full_query( $sql );
-        $server = mysql_fetch_assoc( $res );
+        $server = $this->getServerData( );
 
         $url = urlencode( $onapp_user[ 'email' ] ) . ':' . decrypt( $onapp_user[ 'password' ] )
                . '@' . $server[ 'ipaddress' ] . '/users/';
@@ -485,12 +465,6 @@ class OnApp_Users_Addon {
                . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
         $res = full_query( $sql );
         $onapp_user = mysql_fetch_assoc( $res );
-
-        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
-        $res = full_query( $sql );
-        $server = mysql_fetch_assoc( $res );
-        $pass = decrypt( $server[ 'password' ] );
 
         $headers = array( 'Accept: application/json', 'Content-type: application/json' );
 
@@ -505,14 +479,10 @@ class OnApp_Users_Addon {
 
         $this->smarty->assign( 'msg', true );
         if( $curl->getRequestInfo( 'http_code' ) != 200 ) {
-            $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-                   . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
-            $res = full_query( $sql );
-            $server = mysql_fetch_assoc( $res );
-            $pass = decrypt( $server[ 'password' ] );
+            $server = $this->getServerData( );
 
             $curl = new CURL( );
-            $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $pass );
+            $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
             $curl->addOption( CURLOPT_HTTPHEADER, $headers );
             $curl->addOption( CURLOPT_HEADER, true );
 
@@ -590,5 +560,15 @@ class OnApp_Users_Addon {
         elseif( $user->_status == 'deleted' ) {
             $row[ 'deleted' ] = true;
         }
+    }
+
+    private function getServerData( ) {
+        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
+               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
+        $res = full_query( $sql );
+        $server = mysql_fetch_assoc( $res );
+        $server[ 'password' ] = decrypt( $server[ 'password' ] );
+
+        return $server;
     }
 }
