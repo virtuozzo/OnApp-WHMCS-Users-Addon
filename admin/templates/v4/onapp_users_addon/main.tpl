@@ -1,7 +1,7 @@
 <div id="tabs">
 	<ul>
 		<li class="tab" id="tab0">
-			<a href="onapp_users.tpl#">{$LANG.SearchFilter}</a>
+			<a href="#">{$LANG.SearchFilter}</a>
 		</li>
 	</ul>
 </div>

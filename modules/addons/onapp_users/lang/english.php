@@ -58,4 +58,4 @@ $_ADDONLANG[ 'AuthSyncedError' ] = 'There was error during authentication synchr
 $_ADDONLANG[ 'ID' ] = 'ID';
 
 // JavaScript
-$_ADDONLANG_JS[ 'UnmapAlert' ] = 'Do you really want to unmap user?';
+$_ADDONLANG[ 'JSMessages' ]['UnmapAlert'] = 'Do you really want to unmap user?';

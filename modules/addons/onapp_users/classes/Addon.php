@@ -6,12 +6,14 @@ if( !function_exists( 'json_encode' ) ) {
 
 class OnApp_Users_Addon {
     private $smarty = null;
+    private $lang = null;
     private $servers = array( );
     private $limit = 10;
     private $offset = 0;
 
     public function __construct( &$smarty = null ) {
         $this->smarty = $smarty;
+        $this->lang = $smarty->get_template_vars( 'LANG' );
 
         if( isset( $_GET[ 'map' ] ) ) {
             $smarty->assign( 'map', true );
@@ -233,8 +235,8 @@ class OnApp_Users_Addon {
         $params = array(
             '&page=' . $_GET[ 'page' ],
             '&onapp_user_id=' . @$_GET[ 'onapp_user_id' ],
-            '&whmcs_user_id=' . $_GET[ 'whmcs_user_id' ],
-            '&server_id=' . $_GET[ 'server_id' ],
+            '&whmcs_user_id=' . @$_GET[ 'whmcs_user_id' ],
+            '&server_id=' . @$_GET[ 'server_id' ],
             '&flushCache',
             '&map',
             '&unmap',
@@ -280,7 +282,7 @@ class OnApp_Users_Addon {
 
         $this->smarty->assign( 'msg', true );
         if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'MapedSuccessfully' ] );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'MapedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
 
             insert_query( 'tblonappclients', array(
@@ -299,24 +301,25 @@ class OnApp_Users_Addon {
                 $msg = $tmp->error;
             }
 
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'MapedError' ] . $msg );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'MapedError' ] . $msg );
             $this->smarty->assign( 'msg_ok', false );
         }
     }
 
     private function unmap( ) {
-        $sql = 'DELETE FROM `tblonappclients` WHERE `client_id` = ' . $_GET[ 'whmcs_user_id' ] . ' AND `onapp_user_id`'
-               . ' = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ];
-        mysql_query( $sql );
-
-        $error = mysql_error( );
+//        $sql = 'DELETE FROM `tblonappclients` WHERE `client_id` = ' . $_GET[ 'whmcs_user_id' ] . ' AND `onapp_user_id`'
+//               . ' = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ];
+//        mysql_query( $sql );
+//
+//        $error = mysql_error( );
+        $error = '';
         $this->smarty->assign( 'msg', true );
         if( empty( $error ) ) {
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'UnmapedSuccessfully' ] );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'UnmapedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
         else {
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'UnmapedError' ] . $error );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'UnmapedError' ] . $error );
             $this->smarty->assign( 'msg_ok', false );
 
             $this->cleanParams( );
@@ -345,7 +348,7 @@ class OnApp_Users_Addon {
 
         $this->smarty->assign( 'msg', true );
         if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'ActivatedSuccessfully' ] );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'ActivatedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
         else {
@@ -356,7 +359,7 @@ class OnApp_Users_Addon {
                 $msg = $tmp->error;
             }
 
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'ActivatedError' ] . $msg );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'ActivatedError' ] . $msg );
             $this->smarty->assign( 'msg_ok', false );
         }
 
@@ -385,7 +388,7 @@ class OnApp_Users_Addon {
 
         $this->smarty->assign( 'msg', true );
         if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'SuspendSuccessfully' ] );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'SuspendSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
         else {
@@ -396,7 +399,7 @@ class OnApp_Users_Addon {
                 $msg = $tmp->error;
             }
 
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'SuspendError' ] . $msg );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'SuspendError' ] . $msg );
             $this->smarty->assign( 'msg_ok', false );
         }
 
@@ -436,7 +439,7 @@ class OnApp_Users_Addon {
 
         $this->smarty->assign( 'msg', true );
         if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'DataSyncedSuccessfully' ] );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'DataSyncedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
         else {
@@ -450,7 +453,7 @@ class OnApp_Users_Addon {
                 }
             }
 
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'DataSyncedError' ] . $msg );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'DataSyncedError' ] . $msg );
             $this->smarty->assign( 'msg_ok', false );
         }
 
@@ -471,7 +474,7 @@ class OnApp_Users_Addon {
         $res = full_query( $sql );
         $server = mysql_fetch_assoc( $res );
 
-        $url = urlencode($onapp_user[ 'email' ]) . ':' . decrypt( $onapp_user[ 'password' ] )
+        $url = urlencode( $onapp_user[ 'email' ] ) . ':' . decrypt( $onapp_user[ 'password' ] )
                . '@' . $server[ 'ipaddress' ] . '/users/';
         header( 'Location: http://' . $url );
     }
@@ -546,12 +549,12 @@ class OnApp_Users_Addon {
                 $content = $curl->put( 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json' );
             }
             else {
-                $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'AuthSyncedError' ] );
+                $this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedError' ] );
                 $this->smarty->assign( 'msg_ok', false );
             }
         }
         else {
-            $this->smarty->assign( 'msg_text', $GLOBALS[ '_LANG' ][ 'AuthSyncedSuccessfully' ] );
+            $this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
 

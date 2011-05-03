@@ -1,5 +1,9 @@
-<link href="../modules/admin/onapp_users/templates/styles.css" rel="stylesheet" type="text/css" />
-<script type="text/javascript" src="../modules/admin/onapp_users/js/handlers.js"></script>
+<link href="{$BASE_CSS}/style.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="{$BASE_JS}/handler.js"></script>
+
+<script type="text/javascript">
+    var LANG = {$LANG.JSMessages};
+</script>
 
 {if $msg}
     {if $msg_ok}
