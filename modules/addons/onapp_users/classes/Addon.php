@@ -307,11 +307,11 @@ class OnApp_Users_Addon {
     }
 
     private function unmap( ) {
-//        $sql = 'DELETE FROM `tblonappclients` WHERE `client_id` = ' . $_GET[ 'whmcs_user_id' ] . ' AND `onapp_user_id`'
-//               . ' = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ];
-//        mysql_query( $sql );
-//
-//        $error = mysql_error( );
+        $sql = 'DELETE FROM `tblonappclients` WHERE `client_id` = ' . $_GET[ 'whmcs_user_id' ] . ' AND `onapp_user_id`'
+               . ' = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ];
+        mysql_query( $sql );
+
+        $error = mysql_error( );
         $error = '';
         $this->smarty->assign( 'msg', true );
         if( empty( $error ) ) {
