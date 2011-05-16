@@ -3,10 +3,14 @@
 include_once 'classes/Addon.php';
 
 function onapp_users_output( $vars ) {
+    global $templates_compiledir, $customadminpath;
+
     include_once ROOTDIR . '/includes/smarty/Smarty.class.php';
     $smarty = new Smarty( );
-    $smarty->compile_dir = ROOTDIR . '/templates_c/';
-    $smarty->template_dir = ROOTDIR . '/admin/templates/' . $GLOBALS['aInt' ]->adminTemplate . '/onapp_users_addon/';
+    $compile_dir = file_exists( $templates_compiledir ) ? $templates_compiledir : ROOTDIR . '/' . $templates_compiledir;
+    $smarty->compile_dir = $compile_dir;
+    $smarty->template_dir = ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS['aInt' ]->adminTemplate . '/onapp_users_addon/';
+
     $vars[ '_lang' ]['JSMessages'] = json_encode($vars[ '_lang' ]['JSMessages']);
     $smarty->assign( 'LANG', $vars[ '_lang' ] );
     $smarty->assign( 'BASE_CSS', '/admin/templates/' . $GLOBALS['aInt' ]->adminTemplate . '/onapp_users_addon' );
@@ -60,7 +64,7 @@ function onapp_users_output( $vars ) {
     $smarty->assign( 'total', $data[ 'total' ] );
     $smarty->assign( 'server_id', $_GET[ 'server_id' ] );
 
-    $module->cleanParams( );
+    $module->cleanParams();
     echo $smarty->fetch( $smarty->template_dir . 'onapp_users.tpl' );
 }
 
