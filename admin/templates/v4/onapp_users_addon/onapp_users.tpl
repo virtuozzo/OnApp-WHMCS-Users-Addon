@@ -15,19 +15,9 @@
 {/if}
 
 {if $map}
-	{include file='map.tpl'}
+    {include file='map.tpl'}
 {elseif $info}
-	{include file='info.tpl'}
+    {include file='info.tpl'}
 {else}
-	{include file='main.tpl'}
+    {include file='main.tpl'}
 {/if}
-
-<p align="center">
-    {if $prev}
-        <a href="{$smarty.server.REQUEST_URI}&page={$prev}">« {$LANG.Previous} {$LANG.Page}</a>
-    {/if}
-        &nbsp;
-    {if $next}
-        <a href="{$smarty.server.REQUEST_URI}&page={$next}">{$LANG.Next} {$LANG.Page} »</a>
-    {/if}
-</p>

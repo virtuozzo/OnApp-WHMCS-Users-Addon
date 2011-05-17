@@ -9,11 +9,11 @@ function onapp_users_output( $vars ) {
     $smarty = new Smarty( );
     $compile_dir = file_exists( $templates_compiledir ) ? $templates_compiledir : ROOTDIR . '/' . $templates_compiledir;
     $smarty->compile_dir = $compile_dir;
-    $smarty->template_dir = ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS['aInt' ]->adminTemplate . '/onapp_users_addon/';
+    $smarty->template_dir = ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon/';
 
-    $vars[ '_lang' ]['JSMessages'] = json_encode($vars[ '_lang' ]['JSMessages']);
+    $vars[ '_lang' ][ 'JSMessages' ] = json_encode( $vars[ '_lang' ][ 'JSMessages' ] );
     $smarty->assign( 'LANG', $vars[ '_lang' ] );
-    $smarty->assign( 'BASE_CSS', '/admin/templates/' . $GLOBALS['aInt' ]->adminTemplate . '/onapp_users_addon' );
+    $smarty->assign( 'BASE_CSS', '/admin/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon' );
     $smarty->assign( 'BASE_JS', '/modules/addons/onapp_users/js' );
 
     $module = new OnApp_Users_Addon( $smarty );
@@ -64,7 +64,7 @@ function onapp_users_output( $vars ) {
     $smarty->assign( 'total', $data[ 'total' ] );
     $smarty->assign( 'server_id', $_GET[ 'server_id' ] );
 
-    $module->cleanParams();
+    $module->cleanParams( );
     echo $smarty->fetch( $smarty->template_dir . 'onapp_users.tpl' );
 }
 

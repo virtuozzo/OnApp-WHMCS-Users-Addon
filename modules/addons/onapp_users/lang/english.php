@@ -8,6 +8,7 @@ $_ADDONLANG[ 'Email' ] = 'Email';
 $_ADDONLANG[ 'Server' ] = 'Server';
 $_ADDONLANG[ 'Search' ] = 'Search in';
 $_ADDONLANG[ 'Filter' ] = 'Filter';
+$_ADDONLANG[ 'Reset' ] = 'Reset';
 $_ADDONLANG[ 'Actions' ] = 'Actions';
 $_ADDONLANG[ 'Page' ] = 'Page';
 $_ADDONLANG[ 'Previous' ] = 'Previous';
@@ -26,6 +27,7 @@ $_ADDONLANG[ 'Information' ] = 'Information';
 $_ADDONLANG[ 'Sync' ] = 'Synchronize';
 $_ADDONLANG[ 'Data' ] = 'data';
 $_ADDONLANG[ 'LoginPassword' ] = 'login/password';
+$_ADDONLANG[ 'MappedFilter' ] = 'show only mapped users';
 
 // stat
 $_ADDONLANG[ 'TotalAmount' ] = 'Total Amount';

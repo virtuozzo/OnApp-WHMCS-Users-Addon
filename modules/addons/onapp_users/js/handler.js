@@ -19,16 +19,20 @@ $( document ).ready( function() {
         return false;
     } );
     $( 'select#page' ).bind( 'change', function() {
-        var el = $( 'select#page' );
-        var url = el.parents( 'form' ).attr( 'action' );
-        url += '&' + el.attr( 'name' ) + '=' + el.val();
-        document.location.href = url;
+        var go = document.location.href.replace( /&page=\d+/, '' );
+        go += '&page=' + this.value;
+        document.location.href = go;
     } );
-    $( '#page-go' ).bind( 'click', function() {
-        var el = $( 'select#page' );
-        var url = el.parents( 'form' ).attr( 'action' );
-        url += '&' + el.attr( 'name' ) + '=' + el.val();
-        document.location.href = url;
+    $( '#map-filter' ).change( function() {
+        var checked = $( this ).attr( 'checked' );
+        if( checked ) {
+            var go = document.location.href.replace( /&filtermapped/, '' );
+            go += '&filtermapped';
+        }
+        else {
+            var go = document.location.href.replace( /&filtermapped/, '' );
+        }
+        document.location.href = go;
     } );
 
     // set default values
@@ -36,5 +40,21 @@ $( document ).ready( function() {
     pcre = pcre.exec( document.location.search );
     if( pcre ) {
         $( '.mapserver' ).val( pcre[1] );
+    }
+    $( '#resetfilter' ).bind( 'click', function() {
+        console.log( 'reset' );
+        console.log( document.location );
+        document.location.href = document.location.href;
+
+        return;
+        var go = document.location.href.replace( /&page=\d+/, '' );
+        go += '&page=' + this.value;
+        document.location.href = go;
+    } );
+
+    var pcre = /filtermapped/;
+    pcre = pcre.exec( document.location.search );
+    if( pcre ) {
+        $( '#map-filter' ).attr( 'checked', 'checked' );
     }
 } );

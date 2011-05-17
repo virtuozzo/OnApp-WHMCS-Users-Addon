@@ -9,7 +9,7 @@
             <td width="15%" class="fieldlabel">Address</td>
             <td class="fieldarea">
             {$whmcs_user.address1}
-				{$whmcs_user.address2}
+                {$whmcs_user.address2}
             </td>
         </tr>
         <tr>

@@ -133,6 +133,7 @@ class OnApp_Users_Addon {
             }
         }
 
+        $this->cleanParams( 'page' );
         return $results;
     }
 
@@ -144,10 +145,18 @@ class OnApp_Users_Addon {
             return $result;
         }
 
-        $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-               . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
-               . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
-               . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
+        if( isset( $_GET[ 'filtermapped' ] ) ) {
+            $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
+                   . ' FROM `tblclients` AS whmcs RIGHT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
+                   . ' ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
+                   . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
+        }
+        else {
+            $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
+                   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
+                   . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
+                   . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
+        }
 
         $res = full_query( $sql );
 
@@ -231,13 +240,12 @@ class OnApp_Users_Addon {
         return $results;
     }
 
-    public function cleanParams( ) {
+    public function cleanParams( $param = false ) {
         $params = array(
             '&page=' . $_GET[ 'page' ],
             '&onapp_user_id=' . @$_GET[ 'onapp_user_id' ],
             '&whmcs_user_id=' . @$_GET[ 'whmcs_user_id' ],
             '&server_id=' . @$_GET[ 'server_id' ],
-            '&flushCache',
             '&map',
             '&unmap',
             '&domap',

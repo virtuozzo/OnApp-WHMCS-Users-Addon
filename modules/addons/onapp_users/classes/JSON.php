@@ -1,13 +1,13 @@
 <?php
 
 function json_encode( $data ) {
-	$json = new JSON;
-	$json->serialize( $data );
+    $json = new JSON;
+    $json->serialize( $data );
 }
 
 function json_decode( $data ) {
-	$json = new JSON;
-	$json->unserialize( $data );
+    $json = new JSON;
+    $json->unserialize( $data );
 }
 
 /*
