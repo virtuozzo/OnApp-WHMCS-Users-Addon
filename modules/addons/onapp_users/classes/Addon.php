@@ -39,9 +39,6 @@ class OnApp_Users_Addon {
         elseif( isset( $_GET[ 'suspend' ] ) ) {
             $this->suspend( );
         }
-        elseif( isset( $_GET[ 'signin' ] ) ) {
-            $this->signin( );
-        }
 
         if( !isset( $_GET[ 'page' ] ) ) {
             $_GET[ 'page' ] = 1;
@@ -56,7 +53,7 @@ class OnApp_Users_Addon {
         $res = full_query( $sql );
 
         while( $row = mysql_fetch_assoc( $res ) ) {
-            $this->servers[ $row[ 'id' ] ] = $row;
+            $this->servers[ $row[ 'id' ] ] = $this->getServerData( $row );
         }
 
         return $this->servers;
@@ -65,8 +62,7 @@ class OnApp_Users_Addon {
     public function getUsersFromOnApp( ) {
         $server = $this->servers[ $_GET[ 'server_id' ] ];
 
-        $pass = decrypt( $server[ 'password' ] );
-        $class = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $pass );
+        $class = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $server[ 'password' ] );
         $users = $class->getList( );
 
         $sql = 'SELECT `onapp_user_id` FROM `tblonappclients` WHERE `server_id` = ' . $_GET[ 'server_id' ];
@@ -196,7 +192,7 @@ class OnApp_Users_Addon {
         $result[ 'whmcs_user' ] = mysql_fetch_assoc( full_query( $sql ) );
 
         $server = $this->servers[ $result[ 'whmcs_user' ][ 'server_id' ] ];
-        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], decrypt( $server[ 'password' ] ) );
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $server[ 'password' ] );
         $user->_loger->setDebug( true );
         $user->load( $result[ 'whmcs_user' ][ 'onapp_user_id' ] );
         $result[ 'onapp_user' ] = (array)$user->_obj;
@@ -282,7 +278,7 @@ class OnApp_Users_Addon {
         $curl->addOption( CURLOPT_POSTFIELDS, $data );
         $curl->addOption( CURLOPT_HEADER, true );
 
-        $content = $curl->put( 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json' );
+        $content = $curl->put( $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json' );
 
         $this->smarty->assign( 'msg', true );
         if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
@@ -342,7 +338,7 @@ class OnApp_Users_Addon {
         $curl->addOption( CURLOPT_HTTPHEADER, $headers );
         $curl->addOption( CURLOPT_HEADER, true );
 
-        $url = 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '/activate_user.json';
+        $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '/activate_user.json';
         $content = $curl->get( $url );
 
         $this->smarty->assign( 'msg', true );
@@ -378,7 +374,8 @@ class OnApp_Users_Addon {
         $curl->addOption( CURLOPT_HTTPHEADER, $headers );
         $curl->addOption( CURLOPT_HEADER, true );
 
-        $url = 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '/suspend.json';
+        $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '/suspend.json';
+
         $content = $curl->get( $url );
 
         $this->smarty->assign( 'msg', true );
@@ -425,7 +422,7 @@ class OnApp_Users_Addon {
         $curl->addOption( CURLOPT_POSTFIELDS, $data );
         $curl->addOption( CURLOPT_HEADER, true );
 
-        $url = 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json';
+        $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json';
         $content = $curl->put( $url );
 
         $this->smarty->assign( 'msg', true );
@@ -453,20 +450,6 @@ class OnApp_Users_Addon {
         $this->smarty->assign( 'info', true );
     }
 
-    private function signin( ) {
-        $sql = 'SELECT `password`, `email` FROM tblonappclients '
-               . 'WHERE `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ]
-               . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
-        $res = full_query( $sql );
-        $onapp_user = mysql_fetch_assoc( $res );
-
-        $server = $this->getServerData( );
-
-        $url = urlencode( $onapp_user[ 'email' ] ) . ':' . decrypt( $onapp_user[ 'password' ] )
-               . '@' . $server[ 'ipaddress' ] . '/users/';
-        header( 'Location: http://' . $url );
-    }
-
     private function syncAuth( ) {
         $sql = 'SELECT `password`, `email` FROM tblonappclients '
                . 'WHERE `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ]
@@ -482,7 +465,7 @@ class OnApp_Users_Addon {
         $curl->addOption( CURLOPT_HTTPHEADER, $headers );
         $curl->addOption( CURLOPT_HEADER, true );
 
-        $url = 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json';
+        $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json';
         $content = $curl->get( $url );
 
         $this->smarty->assign( 'msg', true );
@@ -494,7 +477,7 @@ class OnApp_Users_Addon {
             $curl->addOption( CURLOPT_HTTPHEADER, $headers );
             $curl->addOption( CURLOPT_HEADER, true );
 
-            $url = 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json';
+            $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json';
             $content = $curl->get( $url );
 
             if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
@@ -519,12 +502,14 @@ class OnApp_Users_Addon {
 
                 include_once 'CURL.php';
                 $curl = new CURL( );
-                $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $pass );
+                $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
                 $curl->addOption( CURLOPT_HTTPHEADER, $headers );
                 $curl->addOption( CURLOPT_POSTFIELDS, $data );
                 $curl->addOption( CURLOPT_HEADER, true );
 
-                $content = $curl->put( 'http://' . $server[ 'ipaddress' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json' );
+                $content = $curl->put( $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json' );
+                $this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedSuccessfully' ] );
+                $this->smarty->assign( 'msg_ok', true );
             }
             else {
                 $this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedError' ] );
@@ -558,7 +543,7 @@ class OnApp_Users_Addon {
 
     private function checkUser( &$row ) {
         $server = $this->servers[ $row[ 'server_id' ] ];
-        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], decrypt( $server[ 'password' ] ) );
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $server[ 'password' ] );
         $user->load( $row[ 'onapp_user_id' ] );
         $user = $user->_obj;
 
@@ -570,12 +555,21 @@ class OnApp_Users_Addon {
         }
     }
 
-    private function getServerData( ) {
-        $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-               . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
-        $res = full_query( $sql );
-        $server = mysql_fetch_assoc( $res );
+    private function getServerData( $server = null ) {
+        if( is_null( $server ) ) {
+            $sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
+                   . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
+            $res = full_query( $sql );
+            $server = mysql_fetch_assoc( $res );
+        }
         $server[ 'password' ] = decrypt( $server[ 'password' ] );
+
+        if( !empty( $server[ 'ipaddress' ] ) ) {
+            $server[ 'address' ] = $server[ 'ipaddress' ];
+        }
+        else {
+            $server[ 'address' ] = $server[ 'hostname' ];
+        }
 
         return $server;
     }
