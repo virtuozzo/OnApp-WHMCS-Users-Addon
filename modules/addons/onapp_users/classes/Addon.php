@@ -489,8 +489,9 @@ class OnApp_Users_Addon {
                 $res = full_query( $sql );
                 $whmcsuser = mysql_fetch_assoc( $res );
 
-                $sql = 'UPDATE tblonappclients SET `email` = "' . $user->login . '", '
-                       . '`password` = "' . encrypt( $whmcsuser[ 'password' ] ) . '"';
+                $sql = 'UPDATE `tblonappclients` SET `email` = "' . $user->login . '", '
+                       . '`password` = "' . encrypt( $whmcsuser[ 'password' ] ) . '"  WHERE `server_id` = '
+                       . $_GET[ 'server_id' ] . ' AND `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ];
 
                 mysql_query( $sql );
 
