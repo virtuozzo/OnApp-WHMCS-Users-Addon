@@ -62,7 +62,7 @@ class OnApp_Users_Addon {
     public function getUsersFromOnApp( ) {
         $server = $this->servers[ $_GET[ 'server_id' ] ];
 
-        $class = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $server[ 'password' ] );
+        $class = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
         $users = $class->getList( );
 
         $sql = 'SELECT `onapp_user_id` FROM `tblonappclients` WHERE `server_id` = ' . $_GET[ 'server_id' ];
@@ -192,7 +192,7 @@ class OnApp_Users_Addon {
         $result[ 'whmcs_user' ] = mysql_fetch_assoc( full_query( $sql ) );
 
         $server = $this->servers[ $result[ 'whmcs_user' ][ 'server_id' ] ];
-        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $server[ 'password' ] );
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
         $user->_loger->setDebug( true );
         $user->load( $result[ 'whmcs_user' ][ 'onapp_user_id' ] );
         $result[ 'onapp_user' ] = (array)$user->_obj;
@@ -544,7 +544,7 @@ class OnApp_Users_Addon {
 
     private function checkUser( &$row ) {
         $server = $this->servers[ $row[ 'server_id' ] ];
-        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'ipaddress' ], $server[ 'username' ], $server[ 'password' ] );
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
         $user->load( $row[ 'onapp_user_id' ] );
         $user = $user->_obj;
 
