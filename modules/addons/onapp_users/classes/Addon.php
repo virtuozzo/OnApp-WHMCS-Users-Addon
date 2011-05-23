@@ -193,7 +193,6 @@ class OnApp_Users_Addon {
 
         $server = $this->servers[ $result[ 'whmcs_user' ][ 'server_id' ] ];
         $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
-        $user->_loger->setDebug( true );
         $user->load( $result[ 'whmcs_user' ][ 'onapp_user_id' ] );
         $result[ 'onapp_user' ] = (array)$user->_obj;
 
@@ -243,6 +242,7 @@ class OnApp_Users_Addon {
             '&whmcs_user_id=' . @$_GET[ 'whmcs_user_id' ],
             '&server_id=' . @$_GET[ 'server_id' ],
             '&map',
+            '&suspend',
             '&unmap',
             '&domap',
             '&activate',
@@ -265,23 +265,13 @@ class OnApp_Users_Addon {
 
         $server = $this->getServerData( );
 
-        $data[ 'password' ] = $whmcsuser[ 'password' ];
-        $data[ 'password_confirmation' ] = $whmcsuser[ 'password' ];
-        $data = json_encode( array( 'user' => $data ) );
-
-        $headers = array( 'Accept: application/json', 'Content-type: application/json', 'Content-Length: ' . strlen( $data ) );
-
-        include_once 'CURL.php';
-        $curl = new CURL( );
-        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
-        $curl->addOption( CURLOPT_HTTPHEADER, $headers );
-        $curl->addOption( CURLOPT_POSTFIELDS, $data );
-        $curl->addOption( CURLOPT_HEADER, true );
-
-        $content = $curl->put( $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json' );
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
+        $user->load( $_GET[ 'onapp_user_id' ] );
+        $user->_password = $whmcsuser[ 'password' ];
+        $user->save();
 
         $this->smarty->assign( 'msg', true );
-        if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
+        if( is_null( $user->error ) ) {
             $this->smarty->assign( 'msg_text', $this->lang[ 'MapedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
 
@@ -294,12 +284,7 @@ class OnApp_Users_Addon {
             ) );
         }
         else {
-            if( is_null( $tmp = json_decode( $content ) ) ) {
-                $msg = $content;
-            }
-            else {
-                $msg = $tmp->error;
-            }
+            $msg = $user->error;
 
             $this->smarty->assign( 'msg_text', $this->lang[ 'MapedError' ] . $msg );
             $this->smarty->assign( 'msg_ok', false );
@@ -330,30 +315,17 @@ class OnApp_Users_Addon {
     private function activate( ) {
         $server = $this->getServerData( );
 
-        $headers = array( 'Accept: application/json', 'Content-type: application/json' );
-
-        include_once 'CURL.php';
-        $curl = new CURL( );
-        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
-        $curl->addOption( CURLOPT_HTTPHEADER, $headers );
-        $curl->addOption( CURLOPT_HEADER, true );
-
-        $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '/activate_user.json';
-        $content = $curl->get( $url );
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
+        $user->load( $_GET[ 'onapp_user_id' ] );
+        $user->activate_user();
 
         $this->smarty->assign( 'msg', true );
-        if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
+        if( is_null( $user->error ) ) {
             $this->smarty->assign( 'msg_text', $this->lang[ 'ActivatedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
         else {
-            if( is_null( $tmp = json_decode( $content ) ) ) {
-                $msg = $content;
-            }
-            else {
-                $msg = $tmp->error;
-            }
-
+            $msg = $user->error;
             $this->smarty->assign( 'msg_text', $this->lang[ 'ActivatedError' ] . $msg );
             $this->smarty->assign( 'msg_ok', false );
         }
@@ -366,30 +338,17 @@ class OnApp_Users_Addon {
     private function suspend( ) {
         $server = $this->getServerData( );
 
-        $headers = array( 'Accept: application/json', 'Content-type: application/json' );
-
-        include_once 'CURL.php';
-        $curl = new CURL( );
-        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
-        $curl->addOption( CURLOPT_HTTPHEADER, $headers );
-        $curl->addOption( CURLOPT_HEADER, true );
-
-        $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '/suspend.json';
-
-        $content = $curl->get( $url );
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
+        $user->load( $_GET[ 'onapp_user_id' ] );
+        $user->suspend();
 
         $this->smarty->assign( 'msg', true );
-        if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
+        if( is_null( $user->error ) ) {
             $this->smarty->assign( 'msg_text', $this->lang[ 'SuspendSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
         else {
-            if( is_null( $tmp = json_decode( $content ) ) ) {
-                $msg = $content;
-            }
-            else {
-                $msg = $tmp->error;
-            }
+            $msg = $user->error;
 
             $this->smarty->assign( 'msg_text', $this->lang[ 'SuspendError' ] . $msg );
             $this->smarty->assign( 'msg_ok', false );
@@ -408,39 +367,20 @@ class OnApp_Users_Addon {
 
         $server = $this->getServerData( );
 
-        $data[ 'first_name' ] = $whmcsuser[ 'firstname' ];
-        $data[ 'last_name' ] = $whmcsuser[ 'lastname' ];
-        $data[ 'email' ] = $whmcsuser[ 'email' ];
-
-        $data = json_encode( array( 'user' => $data ) );
-        $headers = array( 'Accept: application/json', 'Content-type: application/json', 'Content-Length: ' . strlen( $data ) );
-
-        include_once 'CURL.php';
-        $curl = new CURL( );
-        $curl->addOption( CURLOPT_USERPWD, $server[ 'username' ] . ':' . $server[ 'password' ] );
-        $curl->addOption( CURLOPT_HTTPHEADER, $headers );
-        $curl->addOption( CURLOPT_POSTFIELDS, $data );
-        $curl->addOption( CURLOPT_HEADER, true );
-
-        $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json';
-        $content = $curl->put( $url );
+        $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
+        $user->load( $_GET[ 'onapp_user_id' ] );
+        $user->_first_name = $whmcsuser[ 'firstname' ];
+        $user->_last_name = $whmcsuser[ 'lastname' ];
+        $user->_email = $whmcsuser[ 'email' ];
+        $user->save();
 
         $this->smarty->assign( 'msg', true );
-        if( $curl->getRequestInfo( 'http_code' ) == 200 ) {
+        if( is_null( $user->error ) ) {
             $this->smarty->assign( 'msg_text', $this->lang[ 'DataSyncedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
         else {
-            if( is_null( $tmp = json_decode( $content ) ) ) {
-                $msg = $content;
-            }
-            else {
-                $msg = '';
-                foreach( $tmp as $k => $v ) {
-                    $msg .= $k . ' ' . $v . '<br/>';
-                }
-            }
-
+            $msg = $user->error;
             $this->smarty->assign( 'msg_text', $this->lang[ 'DataSyncedError' ] . $msg );
             $this->smarty->assign( 'msg_ok', false );
         }
