@@ -266,8 +266,9 @@ class OnApp_Users_Addon {
         $server = $this->getServerData( );
 
         $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
+        $user->_loger->setDebug(1);
         $user->load( $_GET[ 'onapp_user_id' ] );
-        $user->_password = $whmcsuser[ 'password' ];
+        $user->_password = $user->_password_confirmation = $whmcsuser[ 'password' ];
         $user->save();
 
         $this->smarty->assign( 'msg', true );
@@ -280,7 +281,7 @@ class OnApp_Users_Addon {
                 'client_id' => $_GET[ 'whmcs_user_id' ],
                 'onapp_user_id' => $_GET[ 'onapp_user_id' ],
                 'password' => encrypt( $whmcsuser[ 'password' ] ),
-                'email' => $whmcsuser[ 'email' ]
+                'email' => $user->_obj->_login
             ) );
         }
         else {
@@ -396,6 +397,8 @@ class OnApp_Users_Addon {
                . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
         $res = full_query( $sql );
         $onapp_user = mysql_fetch_assoc( $res );
+
+        $server = $this->getServerData();
 
         $headers = array( 'Accept: application/json', 'Content-type: application/json' );
 
