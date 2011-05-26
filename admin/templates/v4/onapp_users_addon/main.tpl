@@ -30,6 +30,11 @@
                         <input type="text" value="{$smarty.post.email}" size="25" name="email">
                     </td>
                 </tr>
+                <tr>
+                    <td colspan="2" class="fieldarea">
+                        <input type="checkbox" id="map-filter"/> {$LANG.MappedFilter}
+                    </td>
+                </tr>
             </table>
 
             <img height="5" width="1" src="images/spacer.gif"><br>
@@ -43,14 +48,13 @@
 </div>
 <table cellspacing="2" cellpadding="3" border="0" width="100%" class="form">
     <tr>
-        <td class="fieldlabel">{$LANG.Server}</td>
-        <td class="fieldarea">
+        <td class="fieldlabel">
+            {$LANG.Server}
             <select name="server" class="mapserver">
                 {foreach from=$onapp_servers key=id item=server}
                     <option value="{$id}">{$server.name} | {$server.ipaddress}</option>
                 {/foreach}
             </select>
-            <input type="checkbox" id="map-filter"/> {$LANG.MappedFilter}
         </td>
     </tr>
 </table>
@@ -93,6 +97,13 @@
             </td>
         </tr>
     {/foreach}
+        <tr>
+            <td colspan="6">
+                <a href="{$smarty.server.REQUEST_URI}&server_id={$server_id}&syncauthall" target="_blank">
+                    <input type="button" value="Sync auth for all mapped users" />
+                </a>
+            </td>
+        </tr>
     </table>
 </div>
 

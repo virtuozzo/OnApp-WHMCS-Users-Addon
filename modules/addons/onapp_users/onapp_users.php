@@ -13,8 +13,8 @@ function onapp_users_output( $vars ) {
 
     $vars[ '_lang' ][ 'JSMessages' ] = json_encode( $vars[ '_lang' ][ 'JSMessages' ] );
     $smarty->assign( 'LANG', $vars[ '_lang' ] );
-    $smarty->assign( 'BASE_CSS', '/admin/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon' );
-    $smarty->assign( 'BASE_JS', '/modules/addons/onapp_users/js' );
+    $smarty->assign( 'BASE_CSS', '../' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon' );
+    $smarty->assign( 'BASE_JS', '../modules/addons/onapp_users/js' );
 
     $module = new OnApp_Users_Addon( $smarty );
     $smarty->assign( 'onapp_servers', $servers = $module->getServers( ) );

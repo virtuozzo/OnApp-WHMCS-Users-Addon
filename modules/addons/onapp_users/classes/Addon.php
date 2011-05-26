@@ -39,6 +39,9 @@ class OnApp_Users_Addon {
         elseif( isset( $_GET[ 'suspend' ] ) ) {
             $this->suspend( );
         }
+        elseif( isset( $_GET[ 'syncauthall' ] ) ) {
+            $this->syncAuthAll( );
+        }
 
         if( !isset( $_GET[ 'page' ] ) ) {
             $_GET[ 'page' ] = 1;
@@ -224,6 +227,10 @@ class OnApp_Users_Addon {
 
         $results = array( );
         while( $row = mysql_fetch_assoc( $res ) ) {
+            if( !is_null( $row[ 'server_id' ] ) ) {
+                $this->checkUser( $row );
+                $row[ 'mapped' ] = true;
+            }
             $results[ 'data' ][ ] = $row;
         }
 
@@ -266,10 +273,10 @@ class OnApp_Users_Addon {
         $server = $this->getServerData( );
 
         $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
-        $user->_loger->setDebug(1);
+        $user->_loger->setDebug( 1 );
         $user->load( $_GET[ 'onapp_user_id' ] );
         $user->_password = $user->_password_confirmation = $whmcsuser[ 'password' ];
-        $user->save();
+        $user->save( );
 
         $this->smarty->assign( 'msg', true );
         if( is_null( $user->error ) ) {
@@ -277,12 +284,12 @@ class OnApp_Users_Addon {
             $this->smarty->assign( 'msg_ok', true );
 
             insert_query( 'tblonappclients', array(
-                'server_id' => $_GET[ 'server_id' ],
-                'client_id' => $_GET[ 'whmcs_user_id' ],
-                'onapp_user_id' => $_GET[ 'onapp_user_id' ],
-                'password' => encrypt( $whmcsuser[ 'password' ] ),
-                'email' => $user->_obj->_login
-            ) );
+                    'server_id' => $_GET[ 'server_id' ],
+                    'client_id' => $_GET[ 'whmcs_user_id' ],
+                    'onapp_user_id' => $_GET[ 'onapp_user_id' ],
+                    'password' => encrypt( $whmcsuser[ 'password' ] ),
+                    'email' => $user->_obj->_login
+                ) );
         }
         else {
             $msg = $user->error;
@@ -318,7 +325,7 @@ class OnApp_Users_Addon {
 
         $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
         $user->load( $_GET[ 'onapp_user_id' ] );
-        $user->activate_user();
+        $user->activate_user( );
 
         $this->smarty->assign( 'msg', true );
         if( is_null( $user->error ) ) {
@@ -341,7 +348,7 @@ class OnApp_Users_Addon {
 
         $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
         $user->load( $_GET[ 'onapp_user_id' ] );
-        $user->suspend();
+        $user->suspend( );
 
         $this->smarty->assign( 'msg', true );
         if( is_null( $user->error ) ) {
@@ -373,7 +380,7 @@ class OnApp_Users_Addon {
         $user->_first_name = $whmcsuser[ 'firstname' ];
         $user->_last_name = $whmcsuser[ 'lastname' ];
         $user->_email = $whmcsuser[ 'email' ];
-        $user->save();
+        $user->save( );
 
         $this->smarty->assign( 'msg', true );
         if( is_null( $user->error ) ) {
@@ -391,14 +398,47 @@ class OnApp_Users_Addon {
         $this->smarty->assign( 'info', true );
     }
 
-    private function syncAuth( ) {
-        $sql = 'SELECT `password`, `email` FROM tblonappclients '
-               . 'WHERE `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ]
-               . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
+    private function syncAuthAll( ) {
+        set_time_limit( 0 );
+        $sql = 'SELECT `password`, `email`, `onapp_user_id`, `client_id` FROM tblonappclients '
+               . 'WHERE `server_id` = ' . $_GET[ 'server_id' ];
         $res = full_query( $sql );
-        $onapp_user = mysql_fetch_assoc( $res );
 
-        $server = $this->getServerData();
+        while( $row = mysql_fetch_assoc( $res ) ) {
+            $_GET[ 'onapp_user_id' ] = $row[ 'onapp_user_id' ];
+            $_GET[ 'whmcs_user_id' ] = $row[ 'client_id' ];
+            $sync = $this->syncAuth( $row );
+
+            if( $sync ) {
+                $msg = $row[ 'email' ] . ' synced';
+            }
+            else {
+                $msg = $row[ 'email' ] . ' not synced (try to sync manually)';
+            }
+            $msg .= '<br/>' . str_repeat( ' ', 15500 );
+
+            echo $msg;
+            flush( );
+            ob_end_flush( );
+        }
+        exit( '<br/><br/>Synchronization finished' );
+    }
+
+    private function syncAuth( $onapp_user = null ) {
+        if( is_null( $onapp_user ) ) {
+            $sql = 'SELECT `password`, `email` FROM tblonappclients '
+                   . 'WHERE `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ]
+                   . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
+            $res = full_query( $sql );
+            $onapp_user = mysql_fetch_assoc( $res );
+
+            $sync_all = false;
+        }
+        else {
+            $sync_all = true;
+        }
+
+        $server = $this->getServerData( );
 
         $headers = array( 'Accept: application/json', 'Content-type: application/json' );
 
@@ -409,6 +449,7 @@ class OnApp_Users_Addon {
         $curl->addOption( CURLOPT_HEADER, true );
 
         $url = $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json';
+
         $content = $curl->get( $url );
 
         $this->smarty->assign( 'msg', true );
@@ -452,15 +493,24 @@ class OnApp_Users_Addon {
                 $curl->addOption( CURLOPT_HEADER, true );
 
                 $content = $curl->put( $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json' );
+                if( $sync_all ) {
+                    return true;
+                }
                 $this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedSuccessfully' ] );
                 $this->smarty->assign( 'msg_ok', true );
             }
             else {
+                if( $sync_all ) {
+                    return false;
+                }
                 $this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedError' ] );
                 $this->smarty->assign( 'msg_ok', false );
             }
         }
         else {
+            if( $sync_all ) {
+                return true;
+            }
             $this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedSuccessfully' ] );
             $this->smarty->assign( 'msg_ok', true );
         }
