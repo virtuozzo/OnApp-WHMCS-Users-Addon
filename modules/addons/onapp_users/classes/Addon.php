@@ -15,32 +15,43 @@ class OnApp_Users_Addon {
 		$this->smarty = $smarty;
 		$this->lang = $smarty->get_template_vars( 'LANG' );
 
-		if( isset( $_GET[ 'map' ] ) ) {
-			$smarty->assign( 'map', true );
-		}
-		elseif( isset( $_GET[ 'info' ] ) ) {
-			$smarty->assign( 'info', true );
-		}
-		elseif( isset( $_GET[ 'domap' ] ) ) {
-			$this->map( );
-		}
-		elseif( isset( $_GET[ 'unmap' ] ) ) {
-			$this->unmap( );
-		}
-		elseif( isset( $_GET[ 'activate' ] ) ) {
-			$this->activate( );
-		}
-		elseif( isset( $_GET[ 'syncdata' ] ) ) {
-			$this->syncData( );
-		}
-		elseif( isset( $_GET[ 'syncauth' ] ) ) {
-			$this->syncAuth( );
-		}
-		elseif( isset( $_GET[ 'suspend' ] ) ) {
-			$this->suspend( );
-		}
-		elseif( isset( $_GET[ 'syncauthall' ] ) ) {
-			$this->syncAuthAll( );
+		switch( $_GET[ 'action' ] ) {
+			case 'info':
+				if( !isset( $_GET[ 'onapp_user_id' ] ) ) {
+					$smarty->assign( 'map', true );
+				}
+				else {
+					$smarty->assign( 'info', true );
+				}
+				break;
+
+			case 'domap':
+				$this->map( );
+				break;
+
+			case 'unmap':
+				$this->unmap( );
+				break;
+
+			case 'activate':
+				$this->activate( );
+				break;
+
+			case 'syncdata':
+				$this->syncData( );
+				break;
+
+			case 'syncauth':
+				$this->syncAuth( );
+				break;
+
+			case 'syncauthall':
+				$this->syncAuthAll( );
+				break;
+
+			case 'suspend':
+				$this->suspend( );
+				break;
 		}
 
 		if( !isset( $_GET[ 'page' ] ) ) {
@@ -132,7 +143,6 @@ class OnApp_Users_Addon {
 			}
 		}
 
-		$this->cleanParams( 'page' );
 		return $results;
 	}
 
@@ -237,29 +247,19 @@ class OnApp_Users_Addon {
 		return $results;
 	}
 
-	public function cleanParams( $param = false ) {
-		$params = array(
-			'&page=' . $_GET[ 'page' ],
-			'&onapp_user_id=' . @$_GET[ 'onapp_user_id' ],
-			'&whmcs_user_id=' . @$_GET[ 'whmcs_user_id' ],
-			'&server_id=' . @$_GET[ 'server_id' ],
-			'&map',
-			'&suspend',
-			'&unmap',
-			'&domap',
-			'&activate',
-			'&syncdata',
-			'&syncauth',
-			'&info',
-		);
-		foreach( $params as $param ) {
-			if( strpos( $_SERVER[ 'REQUEST_URI' ], $param ) ) {
-				$_SERVER[ 'REQUEST_URI' ] = str_replace( $param, '', $_SERVER[ 'REQUEST_URI' ] );
-			}
-		}
-	}
-
 	private function map( ) {
+		$sql = 'SELECT COUNT(*) FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
+			   . ' AND client_id = ' . $_GET[ 'whmcs_user_id' ] . ' AND onapp_user_id = ' . $_GET[ 'onapp_user_id' ];
+		$cnt = mysql_result( mysql_query( $sql ), 0 );
+
+		if( $cnt > 0 ) {
+			$this->smarty->assign( 'msg', true );
+			$this->smarty->assign( 'msg_text', $this->lang[ 'MapedError' ] . $this->lang[ 'MapedErrorExists' ] );
+			$this->smarty->assign( 'msg_ok', false );
+
+			return;
+		}
+
 		$sql = 'SELECT `id`, `firstname`, `lastname`, `email`, `password` FROM `tblclients`'
 			   . ' WHERE `id` = ' . $_GET[ 'whmcs_user_id' ];
 		$res = full_query( $sql );
@@ -308,8 +308,7 @@ class OnApp_Users_Addon {
 			$this->smarty->assign( 'msg_text', $this->lang[ 'UnmapedError' ] . $error );
 			$this->smarty->assign( 'msg_ok', false );
 
-			$this->cleanParams( );
-			$_GET[ 'info' ] = true;
+			$_GET[ 'action' ] = 'info';
 			$this->smarty->assign( 'info', true );
 		}
 	}
@@ -332,8 +331,7 @@ class OnApp_Users_Addon {
 			$this->smarty->assign( 'msg_ok', false );
 		}
 
-		$this->cleanParams( );
-		$_GET[ 'info' ] = true;
+		$_GET[ 'action' ] = 'info';
 		$this->smarty->assign( 'info', true );
 	}
 
@@ -356,8 +354,7 @@ class OnApp_Users_Addon {
 			$this->smarty->assign( 'msg_ok', false );
 		}
 
-		$this->cleanParams( );
-		$_GET[ 'info' ] = true;
+		$_GET[ 'action' ] = 'info';
 		$this->smarty->assign( 'info', true );
 	}
 
@@ -387,8 +384,7 @@ class OnApp_Users_Addon {
 			$this->smarty->assign( 'msg_ok', false );
 		}
 
-		$this->cleanParams( );
-		$_GET[ 'info' ] = true;
+		$_GET[ 'action' ] = 'info';
 		$this->smarty->assign( 'info', true );
 	}
 
@@ -511,13 +507,13 @@ class OnApp_Users_Addon {
 			$this->smarty->assign( 'msg_ok', true );
 		}
 
-		$this->cleanParams( );
-		$_GET[ 'info' ] = true;
+		$_GET[ 'action' ] = 'info';
 		$this->smarty->assign( 'info', true );
 	}
 
 	private function getOnAppObject( $class, $server_ip, $username = null, $apikey = null ) {
-		$required_path = dirname( __FILE__ ) . '/../wrapper/';
+		$required_path = dirname( dirname( __FILE__ ) ) . '/wrapper/';
+
 		if( !class_exists( 'ONAPP' ) ) {
 			require_once $required_path . 'ONAPP.php';
 		}

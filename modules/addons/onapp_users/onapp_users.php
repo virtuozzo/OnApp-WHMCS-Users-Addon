@@ -11,7 +11,6 @@ function onapp_users_output( $vars ) {
 	$smarty->compile_dir = $compile_dir;
 	$smarty->template_dir = ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon/';
 
-
 	$base_url = $_SERVER['SCRIPT_NAME'] . '?module=' . $_GET[ 'module' ];
 	$vars[ '_lang' ][ 'JSMessages' ] = json_encode( $vars[ '_lang' ][ 'JSMessages' ] );
 	$smarty->assign( 'LANG', $vars[ '_lang' ] );

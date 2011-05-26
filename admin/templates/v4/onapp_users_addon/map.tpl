@@ -70,7 +70,7 @@
 
 		<div align="center">
 			<input type="submit" class="button" value="{$LANG.Filter}">
-			<input id="resetfilter" type="button" class="button" value="{$LANG.Reset} {$LANG.Filter}">
+			<input type="reset" class="button" value="{$LANG.Reset} {$LANG.Filter}">
 		</div>
 	</form>
 </div>
