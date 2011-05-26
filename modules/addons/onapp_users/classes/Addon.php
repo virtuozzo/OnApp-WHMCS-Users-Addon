@@ -144,18 +144,10 @@ class OnApp_Users_Addon {
             return $result;
         }
 
-        if( isset( $_GET[ 'filtermapped' ] ) ) {
-            $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-                   . ' FROM `tblclients` AS whmcs RIGHT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
-                   . ' ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
-                   . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
-        }
-        else {
-            $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-                   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
-                   . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
-                   . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
-        }
+        $sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
+               . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
+               . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
+               . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
 
         $res = full_query( $sql );
 
@@ -205,6 +197,9 @@ class OnApp_Users_Addon {
     public function filterMain( ) {
         $where = '';
         $rules = array( );
+        if( !empty( $_POST[ 'userid' ] ) ) {
+            $rules[ ] = '`id` LIKE "%' . $_POST[ 'userid' ] . '%"';
+        }
         if( !empty( $_POST[ 'firstname' ] ) ) {
             $rules[ ] = '`firstname` LIKE "%' . $_POST[ 'firstname' ] . '%"';
         }
@@ -213,6 +208,9 @@ class OnApp_Users_Addon {
         }
         if( !empty( $_POST[ 'email' ] ) ) {
             $rules[ ] = 'whmcs.`email` LIKE "%' . $_POST[ 'email' ] . '%"';
+        }
+        if( isset( $_POST[ 'filtermapped' ] ) ) {
+            $rules[ ] = 'onapp.`server_id` = ' . $_GET[ 'server_id' ];
         }
 
         if( count( $rules ) ) {
@@ -234,10 +232,7 @@ class OnApp_Users_Addon {
             $results[ 'data' ][ ] = $row;
         }
 
-        $sql = 'SELECT count(*) FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
-               . ' OR onapp.`client_id` = 0 ' . $where;
-        $res = mysql_query( $sql );
-        $results[ 'total' ] = mysql_result( $res, 0 );
+        $results[ 'total' ] = count( $results[ 'data' ] );
 
         return $results;
     }
@@ -273,7 +268,6 @@ class OnApp_Users_Addon {
         $server = $this->getServerData( );
 
         $user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
-        $user->_loger->setDebug( 1 );
         $user->load( $_GET[ 'onapp_user_id' ] );
         $user->_password = $user->_password_confirmation = $whmcsuser[ 'password' ];
         $user->save( );
@@ -404,16 +398,18 @@ class OnApp_Users_Addon {
                . 'WHERE `server_id` = ' . $_GET[ 'server_id' ];
         $res = full_query( $sql );
 
+        $i = 0;
         while( $row = mysql_fetch_assoc( $res ) ) {
             $_GET[ 'onapp_user_id' ] = $row[ 'onapp_user_id' ];
             $_GET[ 'whmcs_user_id' ] = $row[ 'client_id' ];
             $sync = $this->syncAuth( $row );
 
+            $msg = ++$i . '. ';
             if( $sync ) {
-                $msg = $row[ 'email' ] . ' synced';
+                $msg .= $row[ 'email' ] . ' synced';
             }
             else {
-                $msg = $row[ 'email' ] . ' not synced (try to sync manually)';
+                $msg .= $row[ 'email' ] . ' not synced (try to sync manually)';
             }
             $msg .= '<br/>' . str_repeat( ' ', 15500 );
 
