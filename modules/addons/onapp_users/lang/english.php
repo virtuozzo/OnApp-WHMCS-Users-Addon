@@ -49,6 +49,7 @@ $_ADDONLANG[ 'ActivatedSuccessfully' ] = 'User was activated successfully';
 $_ADDONLANG[ 'ActivatedError' ] = 'There was error during user activation: ';
 $_ADDONLANG[ 'MapedSuccessfully' ] = 'User was maped successfully';
 $_ADDONLANG[ 'MapedError' ] = 'There was error during user\'s maping: ';
+$_ADDONLANG[ 'MapedErrorExists' ] = 'user was already mapped';
 $_ADDONLANG[ 'UnmapedSuccessfully' ] = 'User was unmaped successfully';
 $_ADDONLANG[ 'UnmapedError' ] = 'There was error during user\'s unmaping: ';
 $_ADDONLANG[ 'DataSyncedSuccessfully' ] = 'Data was synced successfully';
