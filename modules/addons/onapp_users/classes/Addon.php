@@ -15,6 +15,15 @@ class OnApp_Users_Addon {
 		$this->smarty = $smarty;
 		$this->lang = $smarty->get_template_vars( 'LANG' );
 
+		$this->smarty->assign( 'onapp_servers', $this->getServers( ) );
+		if( isset( $_GET[ 'server_id' ] ) ) {
+			$this->smarty->assign( 'server_id', $_GET[ 'server_id' ] );
+		}
+		else {
+			$server = current( $this->servers );
+			$smarty->assign( 'server_id', $_GET[ 'server_id' ] = $server[ 'id' ] );
+		}
+
 		if( isset( $_POST[ 'blockops' ] ) && isset( $_POST[ 'selection' ] ) ) {
 			$this->blockOperations( );
 		}
@@ -138,7 +147,6 @@ class OnApp_Users_Addon {
 				$results[ 'data' ][ ] = $tmp[ $this->offset + $i ];
 			}
 
-			//$results[ 'data' ] = $tmp;
 			$results[ 'total' ] = count( $tmp );
 			$results[ 'pages' ] = ceil( $results[ 'total' ] / $this->limit );
 			$results[ 'current' ] = $_GET[ 'page' ];
@@ -642,7 +650,9 @@ class OnApp_Users_Addon {
 
 	private function checkUser( &$row ) {
 		$server = $this->servers[ $row[ 'server_id' ] ];
+
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
+		$user->_loger->setDebug( 1 );
 		$user->load( $row[ 'onapp_user_id' ] );
 		$user = $user->_obj;
 

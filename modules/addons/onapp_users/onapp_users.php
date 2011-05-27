@@ -25,14 +25,6 @@ function onapp_users_output( $vars ) {
 	$smarty->assign( 'BASE', $base_url );
 
 	$module = new OnApp_Users_Addon( $smarty );
-	$smarty->assign( 'onapp_servers', $servers = $module->getServers( ) );
-	if( isset( $_GET[ 'server_id' ] ) ) {
-		$smarty->assign( 'server_id', $_GET[ 'server_id' ] );
-	}
-	else {
-		$server = current( $servers );
-		$smarty->assign( 'server_id', $_GET[ 'server_id' ] = $server[ 'id' ] );
-	}
 
 	if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) ) {
 		$data = $module->filterMain( );
