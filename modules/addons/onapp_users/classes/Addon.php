@@ -15,6 +15,25 @@ class OnApp_Users_Addon {
 		$this->smarty = $smarty;
 		$this->lang = $smarty->get_template_vars( 'LANG' );
 
+		if( isset( $_POST[ 'blockops' ] ) && isset( $_POST[ 'selection' ] ) ) {
+			$this->blockOperations( );
+		}
+
+		if( isset( $_GET[ 'filterreset' ] ) ) {
+			$this->resetFilter( );
+		}
+		else {
+			if( isset( $_POST[ 'filter' ] ) ) {
+				$this->setFilter( );
+			}
+			elseif( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) ) {
+				$this->smarty->assign( 'filter', $_SESSION[ 'onapp_addon' ][ 'filter' ] );
+			}
+			else {
+				$this->smarty->assign( 'filter', null );
+			}
+		}
+
 		switch( $_GET[ 'action' ] ) {
 			case 'info':
 				if( !isset( $_GET[ 'onapp_user_id' ] ) ) {
@@ -43,10 +62,6 @@ class OnApp_Users_Addon {
 
 			case 'syncauth':
 				$this->syncAuth( );
-				break;
-
-			case 'syncauthall':
-				$this->syncAuthAll( );
 				break;
 
 			case 'suspend':
@@ -86,26 +101,23 @@ class OnApp_Users_Addon {
 			$already_mapped[ ] = $row[ 'onapp_user_id' ];
 		}
 
-		if( isset( $_POST[ 'mapfilter' ] ) ) {
+		if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'map' ) ) {
 			foreach( $users as $user ) {
 				$flag = false;
-				if( !empty( $_POST[ 'firstname' ] ) ) {
-					if( strpos( strtolower( $user->_first_name ), strtolower( $_POST[ 'firstname' ] ) ) !== false ) {
+				if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'firstname' ] ) ) {
+					if( strpos( strtolower( $user->_first_name ), strtolower( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'firstname' ] ) ) !== false ) {
 						$flag = true;
 					}
 				}
-				if( !empty( $_POST[ 'lastname' ] ) ) {
-					if( strpos( strtolower( $user->_last_name ), strtolower( $_POST[ 'lastname' ] ) ) !== false ) {
+				if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'lastname' ] ) ) {
+					if( strpos( strtolower( $user->_last_name ), strtolower( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'lastname' ] ) ) !== false ) {
 						$flag = true;
 					}
 				}
-				if( !empty( $_POST[ 'email' ] ) ) {
-					if( strpos( strtolower( $user->_email ), strtolower( $_POST[ 'email' ] ) ) !== false ) {
+				if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'email' ] ) ) {
+					if( strpos( strtolower( $user->_email ), strtolower( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'email' ] ) ) !== false ) {
 						$flag = true;
 					}
-				}
-				if( empty( $_POST[ 'firstname' ] ) && empty( $_POST[ 'lastname' ] ) && empty( $_POST[ 'email' ] ) ) {
-					$flag = true;
 				}
 
 				if( $flag ) {
@@ -113,8 +125,31 @@ class OnApp_Users_Addon {
 				}
 			}
 
-			$results[ 'data' ] = $tmp;
-			$results[ 'total' ] = count( $results[ 'data' ] );
+			$limit = $this->limit;
+			for( $i = 0; $i < $limit; $i++ ) {
+				if( !isset( $tmp[ $this->offset + $i ] ) ) {
+					break;
+				}
+				elseif( in_array( $tmp[ $this->offset + $i ]->_id, $already_mapped ) ) {
+					++$limit;
+					continue;
+				}
+
+				$results[ 'data' ][ ] = $tmp[ $this->offset + $i ];
+			}
+
+			//$results[ 'data' ] = $tmp;
+			$results[ 'total' ] = count( $tmp );
+			$results[ 'pages' ] = ceil( $results[ 'total' ] / $this->limit );
+			$results[ 'current' ] = $_GET[ 'page' ];
+
+			if( $_GET[ 'page' ] > 1 ) {
+				$results[ 'prev' ] = $_GET[ 'page' ] - 1;
+			}
+
+			if( ( $this->offset + $this->limit ) < $results[ 'total' ] ) {
+				$results[ 'next' ] = $_GET[ 'page' ] + 1;
+			}
 		}
 		else {
 			$limit = $this->limit;
@@ -207,29 +242,30 @@ class OnApp_Users_Addon {
 	public function filterMain( ) {
 		$where = '';
 		$rules = array( );
-		if( !empty( $_POST[ 'userid' ] ) ) {
-			$rules[ ] = '`id` LIKE "%' . $_POST[ 'userid' ] . '%"';
+
+		if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'userid' ] ) ) {
+			$rules[ ] = '`id` LIKE "%' . $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'userid' ] . '%"';
 		}
-		if( !empty( $_POST[ 'firstname' ] ) ) {
-			$rules[ ] = '`firstname` LIKE "%' . $_POST[ 'firstname' ] . '%"';
+		if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'firstname' ] ) ) {
+			$rules[ ] = '`firstname` LIKE "%' . $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'firstname' ] . '%"';
 		}
-		if( !empty( $_POST[ 'lastname' ] ) ) {
-			$rules[ ] = '`lastname` LIKE "%' . $_POST[ 'lastname' ] . '%"';
+		if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'lastname' ] ) ) {
+			$rules[ ] = '`lastname` LIKE "%' . $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'lastname' ] . '%"';
 		}
-		if( !empty( $_POST[ 'email' ] ) ) {
-			$rules[ ] = 'whmcs.`email` LIKE "%' . $_POST[ 'email' ] . '%"';
+		if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'email' ] ) ) {
+			$rules[ ] = 'whmcs.`email` LIKE "%' . $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'email' ] . '%"';
 		}
-		if( isset( $_POST[ 'filtermapped' ] ) ) {
-			$rules[ ] = 'onapp.`server_id` = ' . $_GET[ 'server_id' ];
+		if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filtermapped' ] ) ) {
+			$rules[ ] = 'onapp.`server_id` = ' . $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'server_id' ];
 		}
 
 		if( count( $rules ) ) {
 			$where = ' WHERE ' . implode( ' AND ', $rules );
 		}
 
-		$sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
+		$sql = 'SELECT SQL_CALC_FOUND_ROWS whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
 			   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
-			   . ' OR onapp.`client_id` = 0 ' . $where;
+			   . ' OR onapp.`client_id` = 0 ' . $where . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
 
 		$res = mysql_query( $sql );
 
@@ -237,12 +273,25 @@ class OnApp_Users_Addon {
 		while( $row = mysql_fetch_assoc( $res ) ) {
 			if( !is_null( $row[ 'server_id' ] ) ) {
 				$this->checkUser( $row );
-				$row[ 'mapped' ] = true;
+				if( $row[ 'server_id' ] == $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'server_id' ] ) {
+					$row[ 'mapped' ] = true;
+				}
 			}
 			$results[ 'data' ][ ] = $row;
 		}
 
-		$results[ 'total' ] = count( $results[ 'data' ] );
+		$results[ 'total' ] = mysql_result( mysql_query( 'SELECT FOUND_ROWS( )' ), 0 );
+
+		$results[ 'pages' ] = ceil( $results[ 'total' ] / $this->limit );
+		$results[ 'current' ] = $_GET[ 'page' ];
+
+		if( $_GET[ 'page' ] > 1 ) {
+			$results[ 'prev' ] = $_GET[ 'page' ] - 1;
+		}
+
+		if( ( $this->offset + $this->limit ) < $results[ 'total' ] ) {
+			$results[ 'next' ] = $_GET[ 'page' ] + 1;
+		}
 
 		return $results;
 	}
@@ -293,7 +342,20 @@ class OnApp_Users_Addon {
 		}
 	}
 
-	private function unmap( ) {
+	private function unmap( $id = null ) {
+		if( !is_null( $id ) ) {
+			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
+				   . ' AND client_id = ' . $id . ' LIMIT 1';
+
+			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
+			$_GET[ 'whmcs_user_id' ] = $id;
+
+			$blockops = true;
+		}
+		else {
+			$blockops = false;
+		}
+
 		$sql = 'DELETE FROM `tblonappclients` WHERE `client_id` = ' . $_GET[ 'whmcs_user_id' ] . ' AND `onapp_user_id`'
 			   . ' = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ];
 		mysql_query( $sql );
@@ -301,10 +363,18 @@ class OnApp_Users_Addon {
 		$error = mysql_error( );
 		$this->smarty->assign( 'msg', true );
 		if( empty( $error ) ) {
+			if( $blockops ) {
+				return true;
+			}
+
 			$this->smarty->assign( 'msg_text', $this->lang[ 'UnmapedSuccessfully' ] );
 			$this->smarty->assign( 'msg_ok', true );
 		}
 		else {
+			if( $blockops ) {
+				return false;
+			}
+
 			$this->smarty->assign( 'msg_text', $this->lang[ 'UnmapedError' ] . $error );
 			$this->smarty->assign( 'msg_ok', false );
 
@@ -313,19 +383,39 @@ class OnApp_Users_Addon {
 		}
 	}
 
-	private function activate( ) {
+	private function activate( $id = null ) {
+		if( !is_null( $id ) ) {
+			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
+				   . ' AND client_id = ' . $id . ' LIMIT 1';
+
+			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
+
+			$blockops = true;
+		}
+		else {
+			$blockops = false;
+		}
+
 		$server = $this->getServerData( );
 
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
+		$user->_loger->setDebug( 1 );
 		$user->load( $_GET[ 'onapp_user_id' ] );
+
 		$user->activate_user( );
 
 		$this->smarty->assign( 'msg', true );
 		if( is_null( $user->error ) ) {
+			if( $blockops ) {
+				return true;
+			}
 			$this->smarty->assign( 'msg_text', $this->lang[ 'ActivatedSuccessfully' ] );
 			$this->smarty->assign( 'msg_ok', true );
 		}
 		else {
+			if( $blockops ) {
+				return false;
+			}
 			$msg = $user->error;
 			$this->smarty->assign( 'msg_text', $this->lang[ 'ActivatedError' ] . $msg );
 			$this->smarty->assign( 'msg_ok', false );
@@ -335,7 +425,19 @@ class OnApp_Users_Addon {
 		$this->smarty->assign( 'info', true );
 	}
 
-	private function suspend( ) {
+	private function suspend( $id = null ) {
+		if( !is_null( $id ) ) {
+			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
+				   . ' AND client_id = ' . $id . ' LIMIT 1';
+
+			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
+
+			$blockops = true;
+		}
+		else {
+			$blockops = false;
+		}
+
 		$server = $this->getServerData( );
 
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
@@ -344,10 +446,18 @@ class OnApp_Users_Addon {
 
 		$this->smarty->assign( 'msg', true );
 		if( is_null( $user->error ) ) {
+			if( $blockops ) {
+				return true;
+			}
+
 			$this->smarty->assign( 'msg_text', $this->lang[ 'SuspendSuccessfully' ] );
 			$this->smarty->assign( 'msg_ok', true );
 		}
 		else {
+			if( $blockops ) {
+				return false;
+			}
+
 			$msg = $user->error;
 
 			$this->smarty->assign( 'msg_text', $this->lang[ 'SuspendError' ] . $msg );
@@ -358,7 +468,20 @@ class OnApp_Users_Addon {
 		$this->smarty->assign( 'info', true );
 	}
 
-	private function syncData( ) {
+	private function syncData( $id = null ) {
+		if( !is_null( $id ) ) {
+			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
+				   . ' AND client_id = ' . $id . ' LIMIT 1';
+
+			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
+			$_GET[ 'whmcs_user_id' ] = $id;
+
+			$blockops = true;
+		}
+		else {
+			$blockops = false;
+		}
+
 		$sql = 'SELECT `id`, `firstname`, `lastname`, `email`, `password` FROM `tblclients`'
 			   . ' WHERE `id` = ' . $_GET[ 'whmcs_user_id' ];
 		$res = full_query( $sql );
@@ -375,10 +498,18 @@ class OnApp_Users_Addon {
 
 		$this->smarty->assign( 'msg', true );
 		if( is_null( $user->error ) ) {
+			if( $blockops ) {
+				return true;
+			}
+
 			$this->smarty->assign( 'msg_text', $this->lang[ 'DataSyncedSuccessfully' ] );
 			$this->smarty->assign( 'msg_ok', true );
 		}
 		else {
+			if( $blockops ) {
+				return false;
+			}
+
 			$msg = $user->error;
 			$this->smarty->assign( 'msg_text', $this->lang[ 'DataSyncedError' ] . $msg );
 			$this->smarty->assign( 'msg_ok', false );
@@ -388,46 +519,24 @@ class OnApp_Users_Addon {
 		$this->smarty->assign( 'info', true );
 	}
 
-	private function syncAuthAll( ) {
-		set_time_limit( 0 );
-		$sql = 'SELECT `password`, `email`, `onapp_user_id`, `client_id` FROM tblonappclients '
-			   . 'WHERE `server_id` = ' . $_GET[ 'server_id' ];
-		$res = full_query( $sql );
+	private function syncAuth( $id = null ) {
+		if( !is_null( $id ) ) {
+			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
+				   . ' AND client_id = ' . $id . ' LIMIT 1';
 
-		$i = 0;
-		while( $row = mysql_fetch_assoc( $res ) ) {
-			$_GET[ 'onapp_user_id' ] = $row[ 'onapp_user_id' ];
-			$_GET[ 'whmcs_user_id' ] = $row[ 'client_id' ];
-			$sync = $this->syncAuth( $row );
+			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
+			$_GET[ 'whmcs_user_id' ] = $id;
 
-			$msg = ++$i . '. ';
-			if( $sync ) {
-				$msg .= $row[ 'email' ] . ' synced';
-			}
-			else {
-				$msg .= $row[ 'email' ] . ' not synced (try to sync manually)';
-			}
-			$msg .= '<br/>' . str_repeat( ' ', 15500 );
-
-			echo $msg;
-			flush( );
-			ob_end_flush( );
-		}
-		exit( '<br/><br/>Synchronization finished' );
-	}
-
-	private function syncAuth( $onapp_user = null ) {
-		if( is_null( $onapp_user ) ) {
 			$sql = 'SELECT `password`, `email` FROM tblonappclients '
 				   . 'WHERE `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ]
 				   . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
 			$res = full_query( $sql );
 			$onapp_user = mysql_fetch_assoc( $res );
 
-			$sync_all = false;
+			$blockops = true;
 		}
 		else {
-			$sync_all = true;
+			$blockops = false;
 		}
 
 		$server = $this->getServerData( );
@@ -485,14 +594,14 @@ class OnApp_Users_Addon {
 				$curl->addOption( CURLOPT_HEADER, true );
 
 				$content = $curl->put( $server[ 'address' ] . '/users/' . $_GET[ 'onapp_user_id' ] . '.json' );
-				if( $sync_all ) {
+				if( $blockops ) {
 					return true;
 				}
 				$this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedSuccessfully' ] );
 				$this->smarty->assign( 'msg_ok', true );
 			}
 			else {
-				if( $sync_all ) {
+				if( $blockops ) {
 					return false;
 				}
 				$this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedError' ] );
@@ -500,11 +609,15 @@ class OnApp_Users_Addon {
 			}
 		}
 		else {
-			if( $sync_all ) {
+			if( $blockops ) {
 				return true;
 			}
 			$this->smarty->assign( 'msg_text', $this->lang[ 'AuthSyncedSuccessfully' ] );
 			$this->smarty->assign( 'msg_ok', true );
+		}
+
+		if( $blockops ) {
+			return true;
 		}
 
 		$_GET[ 'action' ] = 'info';
@@ -558,5 +671,36 @@ class OnApp_Users_Addon {
 		}
 
 		return $server;
+	}
+
+	private function setFilter( ) {
+		foreach( $_POST as $name => $value ) {
+			$_SESSION[ 'onapp_addon' ][ 'filter' ][ $name ] = $value;
+		}
+		$this->smarty->assign( 'filter', $_SESSION[ 'onapp_addon' ][ 'filter' ] );
+	}
+
+	private function resetFilter( ) {
+		unset( $_SESSION[ 'onapp_addon' ][ 'filter' ] );
+		header( 'Location: ' . str_replace( '&filterreset', '', $_SERVER[ 'REQUEST_URI' ] ) );
+	}
+
+	private function blockOperations( ) {
+		set_time_limit( 0 );
+
+		$result = true;
+		foreach( $_POST[ 'selection' ] as $id ) {
+			$action = $_POST[ 'blockops' ];
+			$result = $result && $this->$action( $id );
+		}
+
+		if( $result ) {
+			$this->smarty->assign( 'msg_text', $this->lang[ 'BlockOpsSuccessfully' ] );
+			$this->smarty->assign( 'msg_ok', true );
+		}
+		else {
+			$this->smarty->assign( 'msg_text', $this->lang[ 'BlockOpsError' ] );
+			$this->smarty->assign( 'msg_ok', false );
+		}
 	}
 }

@@ -58,7 +58,9 @@ $_ADDONLANG[ 'SuspendSuccessfully' ] = 'User was suspended successfully';
 $_ADDONLANG[ 'SuspendError' ] = 'There was error during user suspending: ';
 $_ADDONLANG[ 'AuthSyncedSuccessfully' ] = 'Login and Password are now identical';
 $_ADDONLANG[ 'AuthSyncedError' ] = 'There was error during authentication synchronization: ';
+$_ADDONLANG[ 'BlockOpsSuccessfully' ] = 'Operations were performed successfully';
+$_ADDONLANG[ 'BlockOpsError' ] = 'There were some errors during performing operations';
 $_ADDONLANG[ 'ID' ] = 'ID';
 
 // JavaScript
-$_ADDONLANG[ 'JSMessages' ]['UnmapAlert'] = 'Do you really want to unmap user?';
+$_ADDONLANG[ 'JSMessages' ]['UnmapAlert'] = 'Do you really want to unmap selected user(s)?';

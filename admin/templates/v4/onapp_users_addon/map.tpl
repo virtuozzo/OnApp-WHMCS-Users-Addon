@@ -38,7 +38,7 @@
 
 	<!-- Filter -->
 	<form method="post" action="">
-		<input type="hidden" value="true" name="mapfilter">
+		<input type="hidden" value="map" name="filter">
 		<table cellspacing="2" cellpadding="3" border="0" width="100%" class="form">
 			<tr>
 				<td class="fieldlabel">{$LANG.Server}</td>
@@ -49,19 +49,19 @@
 			<tr>
 				<td width="15%" class="fieldlabel">{$LANG.FirstName}</td>
 				<td class="fieldarea">
-					<input type="text" value="{$smarty.post.firstname}" size="25" name="firstname">
+					<input type="text" value="{$filter.firstname}" size="25" name="firstname">
 				</td>
 			</tr>
 			<tr>
 				<td width="15%" class="fieldlabel">{$LANG.LastName}</td>
 				<td class="fieldarea">
-					<input type="text" value="{$smarty.post.lastname}" size="25" name="lastname">
+					<input type="text" value="{$filter.lastname}" size="25" name="lastname">
 				</td>
 			</tr>
 			<tr>
 				<td width="15%" class="fieldlabel">{$LANG.Email}</td>
 				<td class="fieldarea">
-					<input type="text" value="{$smarty.post.email}" size="25" name="email">
+					<input type="text" value="{$filter.email}" size="25" name="email">
 				</td>
 			</tr>
 		</table>
@@ -70,7 +70,7 @@
 
 		<div align="center">
 			<input type="submit" class="button" value="{$LANG.Filter}">
-			<input type="reset" class="button" value="{$LANG.Reset} {$LANG.Filter}">
+			<input id="resetfilter" type="button" class="button" value="{$LANG.Reset} {$LANG.Filter}" />
 		</div>
 	</form>
 </div>
@@ -101,10 +101,10 @@
 
 <p align="center">
 	{if $prev}
-		<a href="{$BASE}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&map&page={$prev}">« {$LANG.Previous} {$LANG.Page}</a>
+		<a href="{$BASE}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&action=info&page={$prev}">« {$LANG.Previous} {$LANG.Page}</a>
 	{/if}
 		&nbsp;
 	{if $next}
-		<a href="{$BASE}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&map&page={$next}">{$LANG.Next} {$LANG.Page} »</a>
+		<a href="{$BASE}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&action=info&page={$next}">{$LANG.Next} {$LANG.Page} »</a>
 	{/if}
 </p>

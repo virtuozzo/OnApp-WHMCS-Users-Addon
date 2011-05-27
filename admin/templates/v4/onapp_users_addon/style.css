@@ -2,6 +2,15 @@ a {
 	outline: 0;
 }
 
+button {
+	color: #666;
+	cursor: pointer;
+}
+
 span.onapp_actions a {
 	text-decoration: none;
+}
+
+.blockops {
+	margin-top: 15px;
 }

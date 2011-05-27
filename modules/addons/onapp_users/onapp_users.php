@@ -11,7 +11,13 @@ function onapp_users_output( $vars ) {
 	$smarty->compile_dir = $compile_dir;
 	$smarty->template_dir = ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon/';
 
-	$base_url = $_SERVER['SCRIPT_NAME'] . '?module=' . $_GET[ 'module' ];
+	if( !file_exists( $smarty->template_dir ) ) {
+		$msg = 'Copy folder ' . ROOTDIR . '/' . $customadminpath . '/templates/v4/onapp_users_addon to '
+			   . ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/';
+		exit( $msg );
+	}
+
+	$base_url = $_SERVER[ 'SCRIPT_NAME' ] . '?module=' . $_GET[ 'module' ];
 	$vars[ '_lang' ][ 'JSMessages' ] = json_encode( $vars[ '_lang' ][ 'JSMessages' ] );
 	$smarty->assign( 'LANG', $vars[ '_lang' ] );
 	$smarty->assign( 'BASE_CSS', '../' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon' );
@@ -25,13 +31,11 @@ function onapp_users_output( $vars ) {
 	}
 	else {
 		$server = current( $servers );
-		$smarty->assign( 'server_id', $server[ 'id' ] );
-		$_GET[ 'server_id' ] = $server[ 'id' ];
+		$smarty->assign( 'server_id', $_GET[ 'server_id' ] = $server[ 'id' ] );
 	}
 
-	if( isset( $_POST[ 'filter' ] ) ) {
-		$filter = 'filter' . $_POST[ 'filter' ];
-		$data = $module->$filter( );
+	if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) ) {
+		$data = $module->filterMain( );
 		$smarty->assign( 'whmcs_users', $data[ 'data' ] );
 	}
 	else {
