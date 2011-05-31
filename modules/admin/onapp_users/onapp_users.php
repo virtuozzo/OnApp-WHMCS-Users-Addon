@@ -8,14 +8,14 @@ $vars[ '_lang' ] = $_LANG;
 onapp_users_output( $vars );
 
 function load_lang( ) {
-    global $_LANG;
+	global $_LANG;
 
-    $file = ONAPP_USERS_ADDON_PATH . '/lang/' . strtolower( @$_SESSION[ 'Language' ] ) . '.php';
-    if( !file_exists( $file ) ) {
-        $file = ONAPP_USERS_ADDON_PATH . '/lang/english.php';
-    }
+	$file = ONAPP_USERS_ADDON_PATH . '/lang/' . strtolower( @$_SESSION[ 'Language' ] ) . '.php';
+	if( !file_exists( $file ) ) {
+		$file = ONAPP_USERS_ADDON_PATH . '/lang/english.php';
+	}
 
-    include_once $file;
+	include_once $file;
 
-    $_LANG = array_merge( $_LANG, $_ADDONLANG );
+	$_LANG = array_merge( $_LANG, $_ADDONLANG );
 }
