@@ -47,10 +47,10 @@ $_ADDONLANG[ 'LoginToCP' ] = 'Login to CP';
 // messages
 $_ADDONLANG[ 'ActivatedSuccessfully' ] = 'User was activated successfully';
 $_ADDONLANG[ 'ActivatedError' ] = 'There was error during user activation: ';
-$_ADDONLANG[ 'MapedSuccessfully' ] = 'User was maped successfully';
+$_ADDONLANG[ 'MapedSuccessfully' ] = 'User was mapped successfully';
 $_ADDONLANG[ 'MapedError' ] = 'There was error during user\'s maping: ';
 $_ADDONLANG[ 'MapedErrorExists' ] = 'user was already mapped';
-$_ADDONLANG[ 'UnmapedSuccessfully' ] = 'User was unmaped successfully';
+$_ADDONLANG[ 'UnmapedSuccessfully' ] = 'User was unmapped successfully';
 $_ADDONLANG[ 'UnmapedError' ] = 'There was error during user\'s unmaping: ';
 $_ADDONLANG[ 'DataSyncedSuccessfully' ] = 'Data was synced successfully';
 $_ADDONLANG[ 'DataSyncedError' ] = 'There was error during data synchronization: ';
