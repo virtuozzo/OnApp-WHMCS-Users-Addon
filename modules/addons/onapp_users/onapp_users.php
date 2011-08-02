@@ -1,6 +1,7 @@
 <?php
 
-include_once 'classes/Addon.php';
+require_once 'classes/Addon.php';
+require_once 'wrapper/OnAppInit.php';
 
 function onapp_users_output( $vars ) {
 	global $templates_compiledir, $customadminpath;

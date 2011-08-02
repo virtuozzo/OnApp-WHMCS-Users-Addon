@@ -1,9 +1,5 @@
 <?php
 
-if( !function_exists( 'json_encode' ) ) {
-	include_once 'JSON.php';
-}
-
 class OnApp_Users_Addon {
 	private $smarty = null;
 	private $lang = null;
@@ -242,7 +238,7 @@ class OnApp_Users_Addon {
 		$server = $this->servers[ $result[ 'whmcs_user' ][ 'server_id' ] ];
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
 		$user->load( $result[ 'whmcs_user' ][ 'onapp_user_id' ] );
-		$result[ 'onapp_user' ] = (array)$user->_obj;
+		$result[ 'onapp_user' ] = $user->_obj;
 
 		return $result;
 	}
@@ -407,7 +403,6 @@ class OnApp_Users_Addon {
 		$server = $this->getServerData( );
 
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
-		$user->_loger->setDebug( 1 );
 		$user->load( $_GET[ 'onapp_user_id' ] );
 
 		$user->activate_user( );
@@ -544,6 +539,15 @@ class OnApp_Users_Addon {
 			$blockops = true;
 		}
 		else {
+			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
+				   . ' AND client_id = ' . $_GET[ 'whmcs_user_id' ] . ' LIMIT 1';
+
+			$sql = 'SELECT `password`, `email` FROM tblonappclients '
+				   . 'WHERE `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ]
+				   . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
+			$res = full_query( $sql );
+			$onapp_user = mysql_fetch_assoc( $res );
+
 			$blockops = false;
 		}
 
@@ -633,15 +637,6 @@ class OnApp_Users_Addon {
 	}
 
 	private function getOnAppObject( $class, $server_ip, $username = null, $apikey = null ) {
-		$required_path = dirname( dirname( __FILE__ ) ) . '/wrapper/';
-
-		if( !class_exists( 'ONAPP' ) ) {
-			require_once $required_path . 'ONAPP.php';
-		}
-
-		$required_file = str_replace( 'ONAPP_', '', $class ) . '.php';
-		require_once $required_path . $required_file;
-
 		$obj = new $class;
 		$obj->auth( $server_ip, $username, $apikey );
 
@@ -652,7 +647,6 @@ class OnApp_Users_Addon {
 		$server = $this->servers[ $row[ 'server_id' ] ];
 
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
-		$user->_loger->setDebug( 1 );
 		$user->load( $row[ 'onapp_user_id' ] );
 		$user = $user->_obj;
 
