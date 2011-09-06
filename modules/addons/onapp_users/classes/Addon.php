@@ -236,7 +236,7 @@ class OnApp_Users_Addon {
 		$result[ 'whmcs_user' ] = mysql_fetch_assoc( full_query( $sql ) );
 
 		$server = $this->servers[ $result[ 'whmcs_user' ][ 'server_id' ] ];
-		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
+		$user = $this->getOnAppObject( 'OnApp_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
 		$user->load( $result[ 'whmcs_user' ][ 'onapp_user_id' ] );
 		$result[ 'onapp_user' ] = $user->_obj;
 
@@ -326,7 +326,7 @@ class OnApp_Users_Addon {
 		$user->save( );
 
 		$this->smarty->assign( 'msg', true );
-		if( is_null( $user->error ) ) {
+		if( is_null( $user->getErrorsAsArray() ) ) {
 			$this->smarty->assign( 'msg_text', $this->lang[ 'MapedSuccessfully' ] );
 			$this->smarty->assign( 'msg_ok', true );
 
@@ -339,7 +339,7 @@ class OnApp_Users_Addon {
 				) );
 		}
 		else {
-			$msg = $user->error;
+			$msg = $user->getErrorsAsString( '<br>' );
 
 			$this->smarty->assign( 'msg_text', $this->lang[ 'MapedError' ] . $msg );
 			$this->smarty->assign( 'msg_ok', false );
@@ -408,7 +408,8 @@ class OnApp_Users_Addon {
 		$user->activate_user( );
 
 		$this->smarty->assign( 'msg', true );
-		if( is_null( $user->error ) ) {
+
+		if( is_null( $user->getErrorsAsArray() ) ) {
 			if( $blockops ) {
 				return true;
 			}
@@ -419,7 +420,7 @@ class OnApp_Users_Addon {
 			if( $blockops ) {
 				return false;
 			}
-			$msg = $user->error;
+			$msg = $user->getErrorsAsString( '<br>' );
 			$this->smarty->assign( 'msg_text', $this->lang[ 'ActivatedError' ] . $msg );
 			$this->smarty->assign( 'msg_ok', false );
 		}
@@ -448,7 +449,7 @@ class OnApp_Users_Addon {
 		$user->suspend( );
 
 		$this->smarty->assign( 'msg', true );
-		if( is_null( $user->error ) ) {
+		if( is_null( $user->getErrorsAsArray() ) ) {
 			if( $blockops ) {
 				return true;
 			}
@@ -461,7 +462,7 @@ class OnApp_Users_Addon {
 				return false;
 			}
 
-			$msg = $user->error;
+			$msg = $user->getErrorsAsString( '<br>' );
 
 			$this->smarty->assign( 'msg_text', $this->lang[ 'SuspendError' ] . $msg );
 			$this->smarty->assign( 'msg_ok', false );
@@ -500,7 +501,7 @@ class OnApp_Users_Addon {
 		$user->save( );
 
 		$this->smarty->assign( 'msg', true );
-		if( is_null( $user->error ) ) {
+		if( is_null( $user->getErrorsAsArray() ) ) {
 			if( $blockops ) {
 				return true;
 			}
@@ -513,7 +514,7 @@ class OnApp_Users_Addon {
 				return false;
 			}
 
-			$msg = $user->error;
+			$msg = $user->getErrorsAsString( '<br>' );
 			$this->smarty->assign( 'msg_text', $this->lang[ 'DataSyncedError' ] . $msg );
 			$this->smarty->assign( 'msg_ok', false );
 		}

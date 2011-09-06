@@ -27,7 +27,7 @@ function onapp_users_output( $vars ) {
 
 	$module = new OnApp_Users_Addon( $smarty );
 
-	if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) ) {
+	if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) && ( $_GET[ 'action' ] != 'info' )  ) {
 		$data = $module->filterMain( );
 		$smarty->assign( 'whmcs_users', $data[ 'data' ] );
 	}
