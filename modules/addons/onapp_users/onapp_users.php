@@ -1,7 +1,11 @@
 <?php
 
 require_once 'classes/Addon.php';
-require_once 'wrapper/OnAppInit.php';
+if ( ! defined('ONAPP_WRAPPER_INIT') )
+    define('ONAPP_WRAPPER_INIT', ROOTDIR . '/includes/wrapper/OnAppInit.php');
+
+if ( file_exists( ONAPP_WRAPPER_INIT ) )
+    require_once ONAPP_WRAPPER_INIT;
 
 function onapp_users_output( $vars ) {
 	global $templates_compiledir, $customadminpath;
@@ -27,7 +31,14 @@ function onapp_users_output( $vars ) {
 
 	$module = new OnApp_Users_Addon( $smarty );
 
-	if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) && ( $_GET[ 'action' ] != 'info' )  ) {
+    if ( ! file_exists( ONAPP_WRAPPER_INIT ) ){
+        $smarty->assign('msg', '1');
+        $smarty->assign('msg_text',
+                'Wrapper not found. Please, take the freshest Wrapper from http://onapp.com/downloads put it into '.
+                ' ' . realpath( ROOTDIR ) . '/includes'
+        );
+    }
+	elseif ( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) && ( $_GET[ 'action' ] != 'info' )  ) {
 		$data = $module->filterMain( );
 		$smarty->assign( 'whmcs_users', $data[ 'data' ] );
 	}
