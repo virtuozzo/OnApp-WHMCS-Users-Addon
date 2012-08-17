@@ -681,7 +681,7 @@ class OnApp_Users_Addon {
 			$this->smarty->assign( 'msg_success', $this->lang[ 'BlockOpsSuccessfully' ] );
 		}
 		else {
-			$this->smarty->assign( 'msg_success', $this->lang[ 'BlockOpsError' ] );
+			$this->smarty->assign( 'msg_error', $this->lang[ 'BlockOpsError' ] );
 		}
 	}
 }
