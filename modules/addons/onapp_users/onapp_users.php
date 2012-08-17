@@ -32,8 +32,7 @@ function onapp_users_output( $vars ) {
 	$module = new OnApp_Users_Addon( $smarty );
 
     if ( ! file_exists( ONAPP_WRAPPER_INIT ) ){
-        $smarty->assign('msg', '1');
-        $smarty->assign('msg_text',
+        $smarty->assign('msg_error',
                 'Wrapper not found. Please, take the freshest Wrapper from http://onapp.com/downloads put it into '.
                 ' ' . realpath( ROOTDIR ) . '/includes'
         );
