@@ -1,7 +1,7 @@
 <div id="tabs">
 	<ul>
 		<li class="tab" id="tab0">
-			<a href="#">{$LANG.SearchFilter}</a>
+			<a id="filter_whmcs_users" {if $filterisset eq true}class="openit"{/if} href="#">{$LANG.SearchFilter}</a>
 		</li>
 	</ul>
 </div>
@@ -74,7 +74,7 @@
 		<table width="100%" cellspacing="1" cellpadding="3" border="0" class="datatable">
 			<tr>
 				<th></th>
-				<th>{$LANG.ID}</th>
+				<th>{$LANG.WHMCSClientID}</th>
 				<th>{$LANG.FirstName}</th>
 				<th>{$LANG.LastName}</th>
 				<th>{$LANG.Email}</th>

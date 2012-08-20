@@ -3,12 +3,12 @@
 		<tr>
 			<td width="50%" align="left">
 			{$total} {$LANG.Found}
-			{if $pages}
+			{if $pages && $search eq false}
 				, {$LANG.Page} {$current} {$LANG.Of} {$pages}
 			{/if}
 			</td>
 			<td width="50%" align="right">
-				{if $pages}
+				{if $pages && $search eq false}
 					{$LANG.Jump} {$LANG.Page}:
 					<select id="page" name="page">
 					{section name=foo start=1 loop=$pages+1}

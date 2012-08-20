@@ -43,25 +43,13 @@
 			<tr>
 				<td class="fieldlabel">{$LANG.Server}</td>
 				<td class="fieldarea">
-					{$onapp_servers[$smarty.get.server_id].name} | {$onapp_servers[$smarty.get.server_id].ipaddress}
+					<b>{$onapp_servers[$smarty.get.server_id].name} | {$onapp_servers[$smarty.get.server_id].ipaddress}</b>
 				</td>
 			</tr>
 			<tr>
-				<td width="15%" class="fieldlabel">{$LANG.FirstName}</td>
+				<td width="15%" class="fieldlabel">{$LANG.SearchOnAppUser}</td>
 				<td class="fieldarea">
-					<input type="text" value="{$filter.firstname}" size="25" name="firstname">
-				</td>
-			</tr>
-			<tr>
-				<td width="15%" class="fieldlabel">{$LANG.LastName}</td>
-				<td class="fieldarea">
-					<input type="text" value="{$filter.lastname}" size="25" name="lastname">
-				</td>
-			</tr>
-			<tr>
-				<td width="15%" class="fieldlabel">{$LANG.Email}</td>
-				<td class="fieldarea">
-					<input type="text" value="{$filter.email}" size="25" name="email">
+					<input type="text" value="{$search}" size="25" name="search">
 				</td>
 			</tr>
 		</table>
@@ -69,8 +57,8 @@
 		<img height="5" width="1" src="images/spacer.gif"><br>
 
 		<div align="center">
-			<input type="submit" class="button" value="{$LANG.Filter}">
-			<input id="resetfilter" type="button" class="button" value="{$LANG.Reset} {$LANG.Filter}" />
+			<input type="submit" class="button" value="{$LANG.Search}">
+            <input onclick="$('input[name=\'search\']').val('')" type="submit" class="button" value="{$LANG.Reset} {$LANG.Filter}">
 		</div>
 	</form>
 </div>
@@ -80,31 +68,42 @@
 
 <table width="100%" cellspacing="1" cellpadding="3" border="0" class="datatable">
 	<tr>
-		<th>{$LANG.ID}</th>
+		<th>{$LANG.OnAppUserID}</th>
 		<th>{$LANG.FirstName}</th>
 		<th>{$LANG.LastName}</th>
 		<th>{$LANG.Email}</th>
 		<th>{$LANG.Actions}</th>
 	</tr>
 	{foreach from=$onapp_users item=user}
+        {if $user->_mapped eq true}
+            {assign var='bg' value=' style="background-color: #ebfee2;"'}
+        {else}
+            {assign var='bg' value=''}
+        {/if}        
 		<tr>
 			<td{$bg}>{$user->_id}</td>
 			<td{$bg}>{$user->_first_name}</td>
 			<td{$bg}>{$user->_last_name}</td>
 			<td{$bg}>{$user->_email}</td>
+            {if $user->_mapped eq false}
 			<td{$bg}>
 				<a href="{$BASE}&onapp_user_id={$user->_id}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&action=domap">{$LANG.Map}</a>
 			</td>
+            {else}
+            <td{$bg}>
+				{$LANG.AlreadyMapped}
+			</td>
+            {/if}
 		</tr>
 	{/foreach}
 </table>
 
 <p align="center">
-	{if $prev}
+	{if $prev && $search eq false}
 		<a href="{$BASE}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&action=info&page={$prev}">« {$LANG.Previous} {$LANG.Page}</a>
 	{/if}
 		&nbsp;
-	{if $next}
+	{if $next && $search eq false}
 		<a href="{$BASE}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&action=info&page={$next}">{$LANG.Next} {$LANG.Page} »</a>
 	{/if}
 </p>

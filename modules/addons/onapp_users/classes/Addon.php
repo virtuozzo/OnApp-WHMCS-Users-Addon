@@ -22,16 +22,22 @@ class OnApp_Users_Addon {
 
 		if( isset( $_POST[ 'blockops' ] ) && isset( $_POST[ 'selection' ] ) ) {
 			$this->blockOperations( );
+            return;
 		}
 
 		if( isset( $_GET[ 'filterreset' ] ) ) {
 			$this->resetFilter( );
+            return;
 		}
-		else {
+		else { 
 			if( isset( $_POST[ 'filter' ] ) ) {
 				$this->setFilter( );
+                $this->smarty->assign('filterisset', true );
+                $this->smarty->assign('msg_info', $this->lang[ 'FilterInfo' ] );
 			}
 			elseif( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) ) {
+                $this->smarty->assign('msg_info', $this->lang[ 'FilterInfo' ] );
+                $this->smarty->assign('filterisset', true );
 				$this->smarty->assign( 'filter', $_SESSION[ 'onapp_addon' ][ 'filter' ] );
 			}
 			else {
@@ -77,6 +83,9 @@ class OnApp_Users_Addon {
 		if( !isset( $_GET[ 'page' ] ) ) {
 			$_GET[ 'page' ] = 1;
 		}
+		if( isset( $_POST[ 'search' ] ) ) {
+			$this->smarty->assign('search', $_POST['search']);
+		}        
 
 		$this->offset = $this->limit * ( $_GET[ 'page' ] - 1 );
 	}
@@ -95,93 +104,46 @@ class OnApp_Users_Addon {
 
 	public function getUsersFromOnApp( ) {
 		$server = $this->servers[ $_GET[ 'server_id' ] ];
-
+        $current = $_GET['page'];
+        
 		$class = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
-		$users = $class->getList( );
-
+        
+        if ( $_POST['search'] ) {
+            $users = $class->getList( NULL, array( 'q' => $_POST['search'], 'per_page' => 'all' )); 
+        } else {
+		    $users = $class->getList( NULL, array('per_page' => $this->limit, 'page' => $current ));
+        }
+        
 		$sql = 'SELECT `onapp_user_id` FROM `tblonappclients` WHERE `server_id` = ' . $_GET[ 'server_id' ];
 		$res = full_query( $sql );
 
 		while( $row = mysql_fetch_assoc( $res ) ) {
 			$already_mapped[ ] = $row[ 'onapp_user_id' ];
 		}
+        
+        $_users = array();
+        
+        foreach( $users as $user ) {
+            if( in_array( $user->_id ,$already_mapped   ) ) {
+                $user->_mapped = true; 
+            }
+            
+            $_users[] = $user;
+        }
+        
+        $results['data']             = $_users;
+        $results[ 'total' ]          = $class->getHeader('X-Total');
+        $results[ 'pages' ]          = ceil( $results[ 'total' ] / $this->limit );
+        $results[ 'current' ]        = $current;
 
-		if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'map' ) ) {
-			foreach( $users as $user ) {
-				$flag = false;
-				if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'firstname' ] ) ) {
-					if( strpos( strtolower( $user->_first_name ), strtolower( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'firstname' ] ) ) !== false ) {
-						$flag = true;
-					}
-				}
-				if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'lastname' ] ) ) {
-					if( strpos( strtolower( $user->_last_name ), strtolower( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'lastname' ] ) ) !== false ) {
-						$flag = true;
-					}
-				}
-				if( !empty( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'email' ] ) ) {
-					if( strpos( strtolower( $user->_email ), strtolower( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'email' ] ) ) !== false ) {
-						$flag = true;
-					}
-				}
+        if( $_GET[ 'page' ] > 1 ) {
+            $results[ 'prev' ] = $_GET[ 'page' ] - 1;
+        }
 
-				if( $flag ) {
-					$tmp[ ] = $user;
-				}
-			}
-
-			$limit = $this->limit;
-			for( $i = 0; $i < $limit; $i++ ) {
-				if( !isset( $tmp[ $this->offset + $i ] ) ) {
-					break;
-				}
-				elseif( in_array( $tmp[ $this->offset + $i ]->_id, $already_mapped ) ) {
-					++$limit;
-					continue;
-				}
-
-				$results[ 'data' ][ ] = $tmp[ $this->offset + $i ];
-			}
-
-			$results[ 'total' ] = count( $tmp );
-			$results[ 'pages' ] = ceil( $results[ 'total' ] / $this->limit );
-			$results[ 'current' ] = $_GET[ 'page' ];
-
-			if( $_GET[ 'page' ] > 1 ) {
-				$results[ 'prev' ] = $_GET[ 'page' ] - 1;
-			}
-
-			if( ( $this->offset + $this->limit ) < $results[ 'total' ] ) {
-				$results[ 'next' ] = $_GET[ 'page' ] + 1;
-			}
-		}
-		else {
-			$limit = $this->limit;
-			for( $i = 0; $i < $limit; $i++ ) {
-				if( !isset( $users[ $this->offset + $i ] ) ) {
-					break;
-				}
-				elseif( in_array( $users[ $this->offset + $i ]->_id, $already_mapped ) ) {
-					++$limit;
-					continue;
-				}
-
-				$results[ 'data' ][ ] = $users[ $this->offset + $i ];
-			}
-
-			$results[ 'total' ] = count( $users ) - count( $already_mapped );
-			$results[ 'pages' ] = ceil( $results[ 'total' ] / $this->limit );
-			$results[ 'current' ] = $_GET[ 'page' ];
-
-			if( $_GET[ 'page' ] > 1 ) {
-				$results[ 'prev' ] = $_GET[ 'page' ] - 1;
-			}
-
-			if( ( $this->offset + $this->limit ) < $results[ 'total' ] ) {
-				$results[ 'next' ] = $_GET[ 'page' ] + 1;
-			}
-		}
-
+        if( ( $this->offset + $this->limit ) < $results[ 'total' ] ) {
+            $results[ 'next' ] = $_GET[ 'page' ] + 1;
+        }
+        
 		return $results;
 	}
 
@@ -197,7 +159,7 @@ class OnApp_Users_Addon {
 			   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
 			   . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
 			   . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
-
+        
 		$res = full_query( $sql );
 
 		while( $row = mysql_fetch_assoc( $res ) ) {
@@ -262,22 +224,23 @@ class OnApp_Users_Addon {
 		if( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filtermapped' ] ) ) {
 			$rules[ ] = 'onapp.`server_id` = ' . $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'server_id' ];
 		}
-
+        
 		if( count( $rules ) ) {
 			$where = ' WHERE ' . implode( ' AND ', $rules );
 		}
-
+        
 		$sql = 'SELECT SQL_CALC_FOUND_ROWS whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-			   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
-			   . ' OR onapp.`client_id` = 0 ' . $where . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
-
+			   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
+			   . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ] . $where 
+			   . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;        
+        
 		$res = mysql_query( $sql );
-
+        
 		$results = array( );
 		while( $row = mysql_fetch_assoc( $res ) ) {
 			if( !is_null( $row[ 'server_id' ] ) ) {
 				$this->checkUser( $row );
-				if( $row[ 'server_id' ] == $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'server_id' ] ) {
+				if( $row[ 'server_id' ] == $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'server_id' ] || $row['server_id'] == $_GET['server_id' ] ) {
 					$row[ 'mapped' ] = true;
 				}
 			}
@@ -319,10 +282,12 @@ class OnApp_Users_Addon {
 		$server = $this->getServerData( );
 
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
-		$user->load( $_GET[ 'onapp_user_id' ] );
+        
+		$user->_id = $_GET[ 'onapp_user_id' ];
 		$user->_password = $user->_password_confirmation = $whmcsuser[ 'password' ];
+        
 		$user->save( );
-
+        
 		if( is_null( $user->getErrorsAsArray() ) ) {
 			$this->smarty->assign( 'msg_success', $this->lang[ 'MapedSuccessfully' ] );
 
@@ -477,16 +442,18 @@ class OnApp_Users_Addon {
 		$whmcsuser = mysql_fetch_assoc( $res );
 
 		$server = $this->getServerData( );
-
+        
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
-		$user->load( $_GET[ 'onapp_user_id' ] );
-		$user->_first_name = $whmcsuser[ 'firstname' ];
+        
+		$user->_id = $_GET[ 'onapp_user_id' ];
+        $user->_first_name = $whmcsuser[ 'firstname' ];
 		$user->_last_name = $whmcsuser[ 'lastname' ];
 		$user->_email = $whmcsuser[ 'email' ];
 		$user->save( );
-
+        
 		if( is_null( $user->getErrorsAsArray() ) ) {
 			if( $blockops ) {
+                $this->smarty->assign( 'msg_success', $this->lang[ 'DataSyncedSuccessfully' ] );
 				return true;
 			}
 
@@ -494,6 +461,7 @@ class OnApp_Users_Addon {
 		}
 		else {
 			if( $blockops ) {
+                $this->smarty->assign( 'msg_error', $user->getErrorsAsString() );
 				return false;
 			}
 
@@ -618,7 +586,7 @@ class OnApp_Users_Addon {
 	private function getOnAppObject( $class, $server_ip, $username = null, $apikey = null ) {
 		$obj = new $class;
 		$obj->auth( $server_ip, $username, $apikey );
-
+        
 		return $obj;
 	}
 
@@ -658,13 +626,16 @@ class OnApp_Users_Addon {
 
 	private function setFilter( ) {
 		foreach( $_POST as $name => $value ) {
+            if ( $value === '0' ) continue;
 			$_SESSION[ 'onapp_addon' ][ 'filter' ][ $name ] = $value;
 		}
+        
 		$this->smarty->assign( 'filter', $_SESSION[ 'onapp_addon' ][ 'filter' ] );
 	}
 
 	private function resetFilter( ) {
 		unset( $_SESSION[ 'onapp_addon' ][ 'filter' ] );
+
 		header( 'Location: ' . str_replace( '&filterreset', '', $_SERVER[ 'REQUEST_URI' ] ) );
 	}
 
@@ -672,16 +643,21 @@ class OnApp_Users_Addon {
 		set_time_limit( 0 );
 
 		$result = true;
+        
 		foreach( $_POST[ 'selection' ] as $id ) {
 			$action = $_POST[ 'blockops' ];
 			$result = $result && $this->$action( $id );
 		}
 
 		if( $result ) {
-			$this->smarty->assign( 'msg_success', $this->lang[ 'BlockOpsSuccessfully' ] );
+            if ( ! $this->smarty->get_template_vars('msg_success') ){
+			    $this->smarty->assign( 'msg_success', $this->lang[ 'BlockOpsSuccessfully' ] );
+            }
 		}
 		else {
-			$this->smarty->assign( 'msg_error', $this->lang[ 'BlockOpsError' ] );
+            if ( ! $this->smarty->get_template_vars('msg_error') ){
+			    $this->smarty->assign( 'msg_error', $this->lang[ 'BlockOpsError' ] );
+            }
 		}
 	}
 }

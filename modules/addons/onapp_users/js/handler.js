@@ -49,4 +49,9 @@ $( document ).ready( function() {
 	if( pcre ) {
 		$( '#map-filter' ).attr( 'checked', 'checked' );
 	}
+    
+    if( $('#filter_whmcs_users').attr('class') == 'openit' ){
+        $('#filter_whmcs_users').click();
+    }
+    
 } );

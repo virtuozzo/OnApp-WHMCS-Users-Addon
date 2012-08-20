@@ -38,7 +38,7 @@ function onapp_users_output( $vars ) {
         );
     }
 	elseif ( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) && ( $_GET[ 'action' ] != 'info' )  ) {
-		$data = $module->filterMain( );
+        $data = $module->filterMain( );
 		$smarty->assign( 'whmcs_users', $data[ 'data' ] );
 	}
 	else {
@@ -48,16 +48,21 @@ function onapp_users_output( $vars ) {
 				$smarty->assign( 'whmcs_user', $data[ 'data' ] );
 
 				$data = $module->getUsersFromOnApp( );
+                
 				$smarty->assign( 'onapp_users', $data[ 'data' ] );
+                $smarty->assign( 'msg_info', $vars[ '_lang' ][ 'OnAppUserListInfo' ] );
 			}
 			else {
 				$data = $module->getUserData( );
+                
+                $smarty->assign('msg_info', $vars[ '_lang' ][ 'UserMappingInfo' ] );                
 				$smarty->assign( 'whmcs_user', $data[ 'whmcs_user' ] );
 				$smarty->assign( 'onapp_user', $data[ 'onapp_user' ] );
 			}
 		}
 		else {
 			$data = $module->getUsersFromWHMCS( );
+            $smarty->assign('msg_info', $vars[ '_lang' ][ 'WhmcsUsersListInfo' ] );
 			$smarty->assign( 'whmcs_users', $data[ 'data' ] );
 		}
 	}

@@ -60,6 +60,16 @@ $_ADDONLANG[ 'AuthSyncedSuccessfully' ] = 'Login and Password are now identical'
 $_ADDONLANG[ 'AuthSyncedError' ] = 'There was error during authentication synchronization: ';
 $_ADDONLANG[ 'BlockOpsSuccessfully' ] = 'Operations were performed successfully';
 $_ADDONLANG[ 'BlockOpsError' ] = 'There were some errors during performing operations';
+$_ADDONLANG[ 'WhmcsUsersListInfo' ] = 'This is the list of WHMCS clients. These ones mapped to OnApp Users are with a green backgroud. Click "view" link to see mapping info. Click "map" link to see the list of OnApp Users available for mapping on the current server and then can be mapped to the WHMCS client.';
+$_ADDONLANG[ 'UserMappingInfo' ] = 'This page displays mapping information of the User. Also you can click one of the buttons below to perform particular action.';
+$_ADDONLANG[ 'AlreadyMapped' ] = 'mapped';
+$_ADDONLANG[ 'SearchOnAppUser' ] = 'Search OnApp User';
+$_ADDONLANG[ 'Search' ] = 'Search';
+$_ADDONLANG[ 'OnAppUserListInfo' ] = 'The first frame display the information of the WHMCS client you are about to map to on of OnApp users. Next is the list of OnApp users of the current server ( those which are already mapped by some other WHCMS user has green background and are not available for mapping ). Fill in the "Search" input field, and click "Search" button to perform search action, or click "Reset Filter" to navigate through all users. Click "map" to map WHMCS client to OnApp one.';
+$_ADDONLANG[ 'FilterInfo' ] = 'Looks like filter for the list of WHMCS clients is set for the current server. Change params and push "Filter" button to apply new filtering. Click "Reset" to view all WHMCS clients.';
+$_ADDONLANG[ 'OnAppUserID' ] = 'OnApp User ID';
+$_ADDONLANG[ 'WHMCSClientID' ] = 'WHMCS Client ID';
+
 $_ADDONLANG[ 'ID' ] = 'ID';
 
 // JavaScript
