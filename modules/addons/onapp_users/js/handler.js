@@ -3,6 +3,7 @@ $( document ).ready( function() {
 	$( '.mapserver' ).bind( 'change', function() {
 		var go = document.location.href.replace( /&server_id=\d+/, '' );
 		go = go.replace( /&page=\d+/, '' );
+        go = go.replace( /&action=\w+/, '' );
 		go += '&server_id=' + this.value;
 		document.location = go;
 	} );

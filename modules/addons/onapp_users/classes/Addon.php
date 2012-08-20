@@ -269,7 +269,7 @@ class OnApp_Users_Addon {
 		$cnt = mysql_result( mysql_query( $sql ), 0 );
 
 		if( $cnt > 0 ) {
-			$this->smarty->assign( 'msg_success', $this->lang[ 'MapedError' ] . $this->lang[ 'MapedErrorExists' ] );
+			$this->smarty->assign( 'msg_error', $this->lang[ 'MapedError' ] . $this->lang[ 'MapedErrorExists' ] );
 
 			return;
 		}
