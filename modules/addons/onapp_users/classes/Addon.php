@@ -283,27 +283,32 @@ class OnApp_Users_Addon {
 
 		$user = $this->getOnAppObject( 'ONAPP_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
         
-		$user->_id = $_GET[ 'onapp_user_id' ];
+		$user->_id       = $_GET[ 'onapp_user_id' ];
+        $user->_email    = $whmcsuser['email'];
 		$user->_password = $user->_password_confirmation = $whmcsuser[ 'password' ];
-        
 		$user->save( );
-        
-		if( is_null( $user->getErrorsAsArray() ) ) {
-			$this->smarty->assign( 'msg_success', $this->lang[ 'MapedSuccessfully' ] );
-
-			insert_query( 'tblonappclients', array(
-					'server_id' => $_GET[ 'server_id' ],
-					'client_id' => $_GET[ 'whmcs_user_id' ],
-					'onapp_user_id' => $_GET[ 'onapp_user_id' ],
-					'password' => encrypt( $whmcsuser[ 'password' ] ),
-					'email' => $user->_obj->_login
-				) );
-		}
-		else {
+        if ( $user->getErrorsAsArray() ) {
 			$msg = $user->getErrorsAsString( '<br>' );
+			$this->smarty->assign( 'msg_error', $this->lang[ 'MapedError' ] . $msg );            
+            return;
+        }
+        
+        $user->load( $_GET['onapp_user_id'] );
+        if ( $user->getErrorsAsArray() ) {
+			$msg = $user->getErrorsAsString( '<br>' );
+			$this->smarty->assign( 'msg_error', $this->lang[ 'MapedError' ] . $msg ); 
+            return;
+        }        
+        
+        $this->smarty->assign( 'msg_success', $this->lang[ 'MapedSuccessfully' ] );
 
-			$this->smarty->assign( 'msg_error', $this->lang[ 'MapedError' ] . $msg );
-		}
+        insert_query( 'tblonappclients', array(
+                'server_id' => $_GET[ 'server_id' ],
+                'client_id' => $_GET[ 'whmcs_user_id' ],
+                'onapp_user_id' => $_GET[ 'onapp_user_id' ],
+                'password' => encrypt( $whmcsuser[ 'password' ] ),
+                'email' => $user->_obj->_login
+            ) );
 	}
 
 	private function unmap( $id = null ) {
