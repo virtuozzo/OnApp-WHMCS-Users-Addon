@@ -1,7 +1,7 @@
 <div id="tabs">
 	<ul>
 		<li class="tab" id="tab0">
-			<a id="filter_whmcs_users" {if $filterisset eq true}class="openit"{/if} href="#">{$LANG.SearchFilter}</a>
+			<a id="filter_whmcs_users" {if isset($filterisset) and ($filterisset eq true)}class="openit"{/if} href="#">{$LANG.SearchFilter}</a>
 		</li>
 	</ul>
 </div>
@@ -38,7 +38,7 @@
 				</tr>
 				<tr>
 					<td colspan="2" class="fieldarea">
-						<input type="checkbox" name="filtermapped" id="map-filter"{if $smarty.post.filtermapped} checked="checked"{/if} /> {$LANG.MappedFilter}
+						<input type="checkbox" name="filtermapped" id="map-filter"{if isset($smarty.post.filtermapped)} checked="checked"{/if} /> {$LANG.MappedFilter}
 					</td>
 				</tr>
 			</table>
@@ -82,18 +82,18 @@
 				<th>{$LANG.Actions}</th>
 			</tr>
 		{foreach from=$whmcs_users item=user}
-			{if $user.not_exist}
+			{if isset($user.not_exist)}
 				{assign var='bg' value=' style="background-color: #f4cbcb;"'}
-			{elseif $user.deleted}
+			{elseif isset($user.deleted)}
 				{assign var='bg' value=' style="background-color: #f7f7bb;"'}
-			{elseif $user.mapped}
+			{elseif isset($user.mapped)}
 				{assign var='bg' value=' style="background-color: #ebfee2;"'}
 			{else}
 				{assign var='bg' value=''}
 			{/if}
 			<tr>
 				<td{$bg}>
-					{if $user.mapped}
+					{if isset($user.mapped)}
 						<input type="checkbox" name="selection[]" value="{$user.id}"/>
 					{else}
 						<input type="checkbox" disabled="disabled"/>
@@ -128,11 +128,11 @@
 </form>
 
 <p align="center">
-	{if $prev}
+	{if isset($prev)}
 		<a href="{$BASE}&server_id={$server_id}&page={$prev}">« {$LANG.Previous} {$LANG.Page}</a>
 	{/if}
 		&nbsp;
-	{if $next}
+	{if isset($next)}
 		<a href="{$BASE}&server_id={$server_id}&page={$next}">{$LANG.Next} {$LANG.Page} »</a>
 	{/if}
 </p>

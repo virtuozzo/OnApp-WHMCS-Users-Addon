@@ -48,6 +48,9 @@
 			</tr>
 			<tr>
 				<td width="15%" class="fieldlabel">{$LANG.SearchOnAppUser}</td>
+				{if ! isset($search)}
+					{assign var='search' value=false}
+				{/if}
 				<td class="fieldarea">
 					<input type="text" value="{$search}" size="25" name="search">
 				</td>
@@ -79,7 +82,7 @@
             {assign var='bg' value=' style="background-color: #ebfee2;"'}
         {else}
             {assign var='bg' value=''}
-        {/if}        
+        {/if}
 		<tr>
 			<td{$bg}>{$user->_id}</td>
 			<td{$bg}>{$user->_first_name}</td>
@@ -99,11 +102,11 @@
 </table>
 
 <p align="center">
-	{if $prev && $search eq false}
+	{if isset($prev) && ($search eq false)}
 		<a href="{$BASE}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&action=info&page={$prev}">« {$LANG.Previous} {$LANG.Page}</a>
 	{/if}
 		&nbsp;
-	{if $next && $search eq false}
+	{if isset($next) && ($search eq false)}
 		<a href="{$BASE}&whmcs_user_id={$whmcs_user.id}&server_id={$server_id}&action=info&page={$next}">{$LANG.Next} {$LANG.Page} »</a>
 	{/if}
 </p>
