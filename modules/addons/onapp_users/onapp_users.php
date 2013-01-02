@@ -1,28 +1,30 @@
 <?php
 
 require_once 'classes/Addon.php';
-if ( ! defined('ONAPP_WRAPPER_INIT') )
-    define('ONAPP_WRAPPER_INIT', ROOTDIR . '/includes/wrapper/OnAppInit.php');
+if( ! defined( 'ONAPP_WRAPPER_INIT' ) ) {
+	define( 'ONAPP_WRAPPER_INIT', ROOTDIR . '/includes/wrapper/OnAppInit.php' );
+}
 
-if ( file_exists( ONAPP_WRAPPER_INIT ) )
-    require_once ONAPP_WRAPPER_INIT;
+if( file_exists( ONAPP_WRAPPER_INIT ) ) {
+	require_once ONAPP_WRAPPER_INIT;
+}
 
 function onapp_users_output( $vars ) {
 	global $templates_compiledir, $customadminpath;
 
 	include_once ROOTDIR . '/includes/smarty/Smarty.class.php';
-	$smarty = new Smarty( );
-	$compile_dir = file_exists( $templates_compiledir ) ? $templates_compiledir : ROOTDIR . '/' . $templates_compiledir;
-	$smarty->compile_dir = $compile_dir;
+	$smarty               = new Smarty();
+	$compile_dir          = file_exists( $templates_compiledir ) ? $templates_compiledir : ROOTDIR . '/' . $templates_compiledir;
+	$smarty->compile_dir  = $compile_dir;
 	$smarty->template_dir = ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon/';
 
-	if( !file_exists( $smarty->template_dir ) ) {
+	if( ! file_exists( $smarty->template_dir ) ) {
 		$msg = 'Copy folder ' . ROOTDIR . '/' . $customadminpath . '/templates/v4/onapp_users_addon to '
-			   . ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/';
+			. ROOTDIR . '/' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/';
 		exit( $msg );
 	}
 
-	$base_url = $_SERVER[ 'SCRIPT_NAME' ] . '?module=' . $_GET[ 'module' ];
+	$base_url                        = $_SERVER[ 'SCRIPT_NAME' ] . '?module=' . $_GET[ 'module' ];
 	$vars[ '_lang' ][ 'JSMessages' ] = json_encode( $vars[ '_lang' ][ 'JSMessages' ] );
 	$smarty->assign( 'LANG', $vars[ '_lang' ] );
 	$smarty->assign( 'BASE_CSS', '../' . $customadminpath . '/templates/' . $GLOBALS[ 'aInt' ]->adminTemplate . '/onapp_users_addon' );
@@ -31,38 +33,37 @@ function onapp_users_output( $vars ) {
 
 	$module = new OnApp_Users_Addon( $smarty );
 
-    if ( ! file_exists( ONAPP_WRAPPER_INIT ) ){
-        $smarty->assign('msg_error',
-                'Wrapper not found. Please, take the freshest Wrapper from http://onapp.com/downloads put it into '.
-                ' ' . realpath( ROOTDIR ) . '/includes'
-        );
-    }
-	elseif ( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) && ( $_GET[ 'action' ] != 'info' )  ) {
-        $data = $module->filterMain( );
+	if( ! file_exists( ONAPP_WRAPPER_INIT ) ) {
+		$smarty->assign( 'msg_error',
+			'Wrapper not found. Please, take the freshest Wrapper from http://onapp.com/downloads put it into ' . realpath( ROOTDIR ) . '/includes'
+		);
+	}
+	elseif( isset( $_SESSION[ 'onapp_addon' ][ 'filter' ] ) && ( $_SESSION[ 'onapp_addon' ][ 'filter' ][ 'filter' ] == 'main' ) && ( $_GET[ 'action' ] != 'info' ) ) {
+		$data = $module->filterMain();
 		$smarty->assign( 'whmcs_users', $data[ 'data' ] );
 	}
 	else {
 		if( isset( $_GET[ 'action' ] ) && ( $_GET[ 'action' ] == 'info' ) ) {
-			if( !isset( $_GET[ 'onapp_user_id' ] ) ) {
+			if( ! isset( $_GET[ 'onapp_user_id' ] ) ) {
 				$data = $module->getUsersFromWHMCS( $_GET[ 'whmcs_user_id' ] );
 				$smarty->assign( 'whmcs_user', $data[ 'data' ] );
 
-				$data = $module->getUsersFromOnApp( );
-                
+				$data = $module->getUsersFromOnApp();
+
 				$smarty->assign( 'onapp_users', $data[ 'data' ] );
-                $smarty->assign( 'msg_info', $vars[ '_lang' ][ 'OnAppUserListInfo' ] );
+				$smarty->assign( 'msg_info', $vars[ '_lang' ][ 'OnAppUserListInfo' ] );
 			}
 			else {
-				$data = $module->getUserData( );
-                
-                $smarty->assign('msg_info', $vars[ '_lang' ][ 'UserMappingInfo' ] );                
+				$data = $module->getUserData();
+
+				$smarty->assign( 'msg_info', $vars[ '_lang' ][ 'UserMappingInfo' ] );
 				$smarty->assign( 'whmcs_user', $data[ 'whmcs_user' ] );
 				$smarty->assign( 'onapp_user', $data[ 'onapp_user' ] );
 			}
 		}
 		else {
-			$data = $module->getUsersFromWHMCS( );
-            $smarty->assign('msg_info', $vars[ '_lang' ][ 'WhmcsUsersListInfo' ] );
+			$data = $module->getUsersFromWHMCS();
+			$smarty->assign( 'msg_info', $vars[ '_lang' ][ 'WhmcsUsersListInfo' ] );
 			$smarty->assign( 'whmcs_users', $data[ 'data' ] );
 		}
 	}
@@ -83,13 +84,13 @@ function onapp_users_output( $vars ) {
 	echo $smarty->fetch( $smarty->template_dir . 'onapp_users.tpl' );
 }
 
-function onapp_users_config( ) {
+function onapp_users_config() {
 	$config = array(
-		'name' => 'OnApp Users Addon',
-		'version' => '1.0',
-		'author' => 'OnApp',
+		'name'        => 'OnApp Users Addon',
+		'version'     => '1.0',
+		'author'      => 'OnApp',
 		'description' => 'This module allows you to map existing OnApp user to WHMCS user and some other useful actions.',
-		'language' => 'english'
+		'language'    => 'english'
 	);
 
 	return $config;
