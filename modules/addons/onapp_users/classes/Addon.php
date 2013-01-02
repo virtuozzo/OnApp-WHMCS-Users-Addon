@@ -91,8 +91,18 @@ class OnApp_Users_Addon {
 	}
 
 	public function getServers( ) {
-		$sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-			   . ' FROM `tblservers` WHERE `type` = "onapp" OR `type` = "onappusers"';
+		$sql = 'SELECT
+					`id`,
+					`name`,
+					`ipaddress`,
+					`hostname`,
+					`username`,
+					`password`
+				FROM
+					`tblservers`
+				WHERE
+					`type` = "onapp"
+					OR `type` = "onappusers"';
 		$res = full_query( $sql );
 
 		while( $row = mysql_fetch_assoc( $res ) ) {
@@ -109,12 +119,18 @@ class OnApp_Users_Addon {
 		$class = $this->getOnAppObject( 'OnApp_User', $server[ 'address' ], $server[ 'username' ], $server[ 'password' ] );
 
         if ( $_POST['search'] ) {
-            $users = $class->getList( NULL, array( 'q' => $_POST['search'], 'per_page' => 'all' ));
+            $users = $class->getList( null, array( 'q' => $_POST['search'], 'per_page' => 'all' ));
         } else {
-		    $users = $class->getList( NULL, array('per_page' => $this->limit, 'page' => $current ));
+		    $users = $class->getList( null, array('per_page' => $this->limit, 'page' => $current ));
         }
 
-		$sql = 'SELECT `onapp_user_id` FROM `tblonappclients` WHERE `server_id` = ' . $_GET[ 'server_id' ];
+		$sql = 'SELECT
+					`onapp_user_id`
+				FROM
+					`tblonappclients`
+				WHERE
+					`server_id` = :serverID';
+		$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
 		$res = full_query( $sql );
 
 		while( $row = mysql_fetch_assoc( $res ) ) {
@@ -149,17 +165,37 @@ class OnApp_Users_Addon {
 
 	public function getUsersFromWHMCS( $id = false ) {
 		if( $id ) {
-			$sql = 'SELECT whmcs.* FROM `tblclients` AS whmcs WHERE whmcs.`id` = ' . $id . ' LIMIT 1';
+			$sql = 'SELECT
+						whmcs.*
+					FROM
+						`tblclients` AS whmcs
+					WHERE
+						whmcs.`id` = :id
+					LIMIT 1';
+			$sql = str_replace( ':id', $id, $sql );
 
 			$result[ 'data' ] = mysql_fetch_assoc( full_query( $sql ) );
 			return $result;
 		}
 
-		$sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-			   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
-			   . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ]
-			   . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
+		$sql = 'SELECT
+					whmcs.*,
+					onapp.email as mail,
+					onapp.client_id,
+					onapp.server_id,
+					onapp.onapp_user_id
+				FROM
+					`tblclients` AS whmcs
+				LEFT JOIN `tblonappclients` AS onapp ON
+					( whmcs.`id` = onapp.`client_id`
+					OR onapp.`client_id` = 0 )
+					AND onapp.`server_id` = :serverID
+				LIMIT :limit
+				OFFSET :offset';
 
+		$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+		$sql = str_replace( ':limit', $this->limit, $sql );
+		$sql = str_replace( ':offset', $this->offset, $sql );
 		$res = full_query( $sql );
 
 		while( $row = mysql_fetch_assoc( $res ) ) {
@@ -170,8 +206,13 @@ class OnApp_Users_Addon {
 			$results[ 'data' ][ $row[ 'id' ] ] = $row;
 		}
 
-		$sql = 'SELECT count(*) FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
-			   . ' OR onapp.`client_id` = 0';
+		$sql = 'SELECT
+					COUNT(*)
+				FROM
+					`tblclients` AS whmcs
+				LEFT JOIN `tblonappclients` AS onapp ON
+					whmcs.`id` = onapp.`client_id`
+					OR onapp.`client_id` = 0';
 		$res = mysql_query( $sql );
 		$results[ 'total' ] = mysql_result( $res, 0 );
 
@@ -190,10 +231,22 @@ class OnApp_Users_Addon {
 	}
 
 	public function getUserData( ) {
-		$sql = 'SELECT whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-			   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON whmcs.`id` = onapp.`client_id`'
-			   . ' WHERE onapp.`server_id` = ' . $_GET[ 'server_id' ] . ' AND whmcs.`id` = ' . $_GET[ 'whmcs_user_id' ]
-			   . ' LIMIT 1';
+		$sql = 'SELECT
+					whmcs.*,
+					onapp.email as mail,
+					onapp.client_id,
+					onapp.server_id,
+					onapp.onapp_user_id
+				FROM
+					`tblclients` AS whmcs
+				LEFT JOIN `tblonappclients` AS onapp ON
+					whmcs.`id` = onapp.`client_id`
+				WHERE
+					onapp.`server_id` = :serverID
+					AND whmcs.`id` = :WHMCSUserID
+				LIMIT 1';
+		$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+		$sql = str_replace( ':WHMCSUserID', $_GET[ 'whmcs_user_id' ], $sql );
 
 		$result[ 'whmcs_user' ] = mysql_fetch_assoc( full_query( $sql ) );
 
@@ -229,11 +282,27 @@ class OnApp_Users_Addon {
 			$where = ' WHERE ' . implode( ' AND ', $rules );
 		}
 
-		$sql = 'SELECT SQL_CALC_FOUND_ROWS whmcs.*, onapp.email as mail, onapp.client_id, onapp.server_id, onapp.onapp_user_id'
-			   . ' FROM `tblclients` AS whmcs LEFT JOIN `tblonappclients` AS onapp ON ( whmcs.`id` = onapp.`client_id`'
-			   . ' OR onapp.`client_id` = 0 ) AND onapp.`server_id` = ' . $_GET[ 'server_id' ] . $where
-			   . ' LIMIT ' . $this->limit . ' OFFSET ' . $this->offset;
+		$sql = 'SELECT
+					SQL_CALC_FOUND_ROWS
+					whmcs.*,
+					onapp.email as mail,
+					onapp.client_id,
+					onapp.server_id,
+					onapp.onapp_user_id
+				FROM
+					`tblclients` AS whmcs
+				LEFT JOIN `tblonappclients` AS onapp ON
+					( whmcs.`id` = onapp.`client_id`
+					OR onapp.`client_id` = 0 )
+					AND onapp.`server_id` = :serverID
+				:WHERE
+				LIMIT :limit
+				OFFSET :offset';
 
+		$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+		$sql = str_replace( ':WHERE', $where, $sql );
+		$sql = str_replace( ':limit', $this->limit, $sql );
+		$sql = str_replace( ':offset', $this->offset, $sql );
 		$res = mysql_query( $sql );
 
 		$results = array( );
@@ -264,8 +333,17 @@ class OnApp_Users_Addon {
 	}
 
 	private function map( ) {
-		$sql = 'SELECT COUNT(*) FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
-			   . ' AND client_id = ' . $_GET[ 'whmcs_user_id' ] . ' AND onapp_user_id = ' . $_GET[ 'onapp_user_id' ];
+		$sql = 'SELECT
+					COUNT(*)
+				FROM
+					tblonappclients
+				WHERE
+					server_id = :serverID
+					AND client_id = :WHMCSUserID
+					AND onapp_user_id = :OnAppUserID';
+		$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+		$sql = str_replace( ':WHMCSUserID', $_GET[ 'whmcs_user_id' ], $sql );
+		$sql = str_replace( ':OnAppUserID', $_GET[ 'onapp_user_id' ], $sql );
 		$cnt = mysql_result( mysql_query( $sql ), 0 );
 
 		if( $cnt > 0 ) {
@@ -274,8 +352,17 @@ class OnApp_Users_Addon {
 			return;
 		}
 
-		$sql = 'SELECT `id`, `firstname`, `lastname`, `email`, `password` FROM `tblclients`'
-			   . ' WHERE `id` = ' . $_GET[ 'whmcs_user_id' ];
+		$sql = 'SELECT
+					`id`,
+					`firstname`,
+					`lastname`,
+					`email`,
+					`password`
+				FROM
+					`tblclients`
+				WHERE
+					`id` = :WHMCSUserID';
+		$sql = str_replace( ':WHMCSUserID', $_GET[ 'whmcs_user_id' ], $sql );
 		$res = full_query( $sql );
 		$whmcsuser = mysql_fetch_assoc( $res );
 
@@ -313,8 +400,16 @@ class OnApp_Users_Addon {
 
 	private function unmap( $id = null ) {
 		if( !is_null( $id ) ) {
-			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
-				   . ' AND client_id = ' . $id . ' LIMIT 1';
+			$sql = 'SELECT
+						onapp_user_id
+					FROM
+						tblonappclients
+					WHERE
+						server_id = :serverID
+						AND client_id = :clientID
+					LIMIT 1';
+			$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+			$sql = str_replace( ':clientID', $id, $sql );
 
 			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
 			$_GET[ 'whmcs_user_id' ] = $id;
@@ -325,8 +420,16 @@ class OnApp_Users_Addon {
 			$blockops = false;
 		}
 
-		$sql = 'DELETE FROM `tblonappclients` WHERE `client_id` = ' . $_GET[ 'whmcs_user_id' ] . ' AND `onapp_user_id`'
-			   . ' = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ];
+		$sql = 'DELETE
+				FROM
+					`tblonappclients`
+				WHERE
+					`client_id` = :WHMCSUserID
+					AND `onapp_user_id` = :OnAppUserID
+					AND `server_id` = :serverID';
+		$sql = str_replace( ':WHMCSUserID', $_GET[ 'whmcs_user_id' ], $sql );
+		$sql = str_replace( ':OnAppUserID', $_GET[ 'onapp_user_id' ], $sql );
+		$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
 		mysql_query( $sql );
 
 		$error = mysql_error( );
@@ -351,8 +454,16 @@ class OnApp_Users_Addon {
 
 	private function activate( $id = null ) {
 		if( !is_null( $id ) ) {
-			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
-				   . ' AND client_id = ' . $id . ' LIMIT 1';
+			$sql = 'SELECT
+						onapp_user_id
+					FROM
+						tblonappclients
+					WHERE
+						server_id = :serverID
+						AND client_id = :clientID
+					LIMIT 1';
+			$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+			$sql = str_replace( ':clientID', $id, $sql );
 
 			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
 
@@ -389,8 +500,16 @@ class OnApp_Users_Addon {
 
 	private function suspend( $id = null ) {
 		if( !is_null( $id ) ) {
-			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
-				   . ' AND client_id = ' . $id . ' LIMIT 1';
+			$sql = 'SELECT
+						onapp_user_id
+					FROM
+						tblonappclients
+					WHERE
+						server_id = :serverID
+						AND client_id = :clientID
+					LIMIT 1';
+			$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+			$sql = str_replace( ':clientID', $id, $sql );
 
 			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
 
@@ -429,8 +548,16 @@ class OnApp_Users_Addon {
 
 	private function syncData( $id = null ) {
 		if( !is_null( $id ) ) {
-			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
-				   . ' AND client_id = ' . $id . ' LIMIT 1';
+			$sql = 'SELECT
+						onapp_user_id
+					FROM
+						tblonappclients
+					WHERE
+						server_id = :serverID
+						AND client_id = :clientID
+					LIMIT 1';
+			$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+			$sql = str_replace( ':clientID', $id, $sql );
 
 			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
 			$_GET[ 'whmcs_user_id' ] = $id;
@@ -441,8 +568,17 @@ class OnApp_Users_Addon {
 			$blockops = false;
 		}
 
-		$sql = 'SELECT `id`, `firstname`, `lastname`, `email`, `password` FROM `tblclients`'
-			   . ' WHERE `id` = ' . $_GET[ 'whmcs_user_id' ];
+		$sql = 'SELECT
+					`id`,
+					`firstname`,
+					`lastname`,
+					`email`,
+					`password`
+				FROM
+					`tblclients`
+				WHERE
+					`id` = :WHMCSUserID';
+		$sql = str_replace( ':WHMCSUserID', $_GET[ 'whmcs_user_id' ], $sql );
 		$res = full_query( $sql );
 		$whmcsuser = mysql_fetch_assoc( $res );
 
@@ -480,27 +616,50 @@ class OnApp_Users_Addon {
 
 	private function syncAuth( $id = null ) {
 		if( !is_null( $id ) ) {
-			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
-				   . ' AND client_id = ' . $id . ' LIMIT 1';
+			$sql = 'SELECT
+						onapp_user_id
+					FROM
+						tblonappclients
+					WHERE
+						server_id = :serverID
+						AND client_id = :clientID
+					LIMIT 1';
+			$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+			$sql = str_replace( ':clientID', $id, $sql );
 
 			$_GET[ 'onapp_user_id' ] = mysql_result( mysql_query( $sql ), 0 );
 			$_GET[ 'whmcs_user_id' ] = $id;
 
-			$sql = 'SELECT `password`, `email` FROM tblonappclients '
-				   . 'WHERE `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ]
-				   . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
+			$sql = 'SELECT
+						`password`,
+						`email`
+					FROM
+						tblonappclients
+					WHERE
+						`onapp_user_id` = :OnAppUserID
+						AND `server_id` = :serverID
+						AND `client_id` = :WHMCSUserID';
+			$sql = str_replace( ':OnAppUserID', $_GET[ 'onapp_user_id' ], $sql );
+			$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+			$sql = str_replace( ':WHMCSUserID', $_GET[ 'whmcs_user_id' ], $sql );
 			$res = full_query( $sql );
 			$onapp_user = mysql_fetch_assoc( $res );
 
 			$blockops = true;
 		}
 		else {
-			$sql = 'SELECT onapp_user_id FROM tblonappclients WHERE server_id = ' . $_GET[ 'server_id' ]
-				   . ' AND client_id = ' . $_GET[ 'whmcs_user_id' ] . ' LIMIT 1';
-
-			$sql = 'SELECT `password`, `email` FROM tblonappclients '
-				   . 'WHERE `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ] . ' AND `server_id` = ' . $_GET[ 'server_id' ]
-				   . ' AND `client_id` = ' . $_GET[ 'whmcs_user_id' ];
+			$sql = 'SELECT
+						`password`,
+						`email`
+					FROM
+						tblonappclients
+					WHERE
+						`onapp_user_id` = :OnAppUserID
+						AND `server_id` = :serverID
+						AND `client_id` = :WHMCSUserID';
+			$sql = str_replace( ':OnAppUserID', $_GET[ 'onapp_user_id' ], $sql );
+			$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+			$sql = str_replace( ':WHMCSUserID', $_GET[ 'whmcs_user_id' ], $sql );
 			$res = full_query( $sql );
 			$onapp_user = mysql_fetch_assoc( $res );
 
@@ -536,15 +695,31 @@ class OnApp_Users_Addon {
 				$content = json_decode( $content );
 				$user = $content->user;
 
-				$sql = 'SELECT `id`, `firstname`, `lastname`, `email`, `password` FROM `tblclients`'
-					   . ' WHERE `id` = ' . $_GET[ 'whmcs_user_id' ];
+				$sql = 'SELECT
+							`id`,
+							`firstname`,
+							`lastname`,
+							`email`,
+							`password`
+						FROM
+							`tblclients`
+						WHERE
+							`id` = :id';
+				$sql = str_replace( ':id', $_GET[ 'whmcs_user_id' ], $sql );
 				$res = full_query( $sql );
 				$whmcsuser = mysql_fetch_assoc( $res );
 
-				$sql = 'UPDATE `tblonappclients` SET `email` = "' . $user->login . '", '
-					   . '`password` = "' . encrypt( $whmcsuser[ 'password' ] ) . '"  WHERE `server_id` = '
-					   . $_GET[ 'server_id' ] . ' AND `onapp_user_id` = ' . $_GET[ 'onapp_user_id' ];
-
+				$sql = 'UPDATE
+							`tblonappclients`
+						SET
+							`email` = ":email",
+							`password` = ":password"
+						WHERE `server_id` = :serverID
+						AND `onapp_user_id` = :OnAppUserID';
+				$sql = str_replace( ':email', $user->login, $sql );
+				$sql = str_replace( ':password', encrypt( $whmcsuser[ 'password' ] ), $sql );
+				$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
+				$sql = str_replace( ':OnAppUserID', $_GET[ 'onapp_user_id' ], $sql );
 				mysql_query( $sql );
 
 				$data[ 'password' ] = $whmcsuser[ 'password' ];
@@ -612,8 +787,18 @@ class OnApp_Users_Addon {
 
 	private function getServerData( $server = null ) {
 		if( is_null( $server ) ) {
-			$sql = 'SELECT `id`, `name`, `ipaddress`, `hostname`, `username`, `password`'
-				   . ' FROM `tblservers` WHERE `id` = ' . $_GET[ 'server_id' ];
+			$sql = 'SELECT
+						`id`,
+						`name`,
+						`ipaddress`,
+						`hostname`,
+						`username`,
+						`password`
+					FROM
+						`tblservers`
+					WHERE
+						`id` = :serverID';
+			$sql = str_replace( ':serverID', $_GET[ 'server_id' ], $sql );
 			$res = full_query( $sql );
 			$server = mysql_fetch_assoc( $res );
 		}
